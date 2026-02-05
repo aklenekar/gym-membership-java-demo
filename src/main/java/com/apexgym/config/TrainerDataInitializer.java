@@ -1,13 +1,11 @@
 package com.apexgym.config;
 
-import com.apexgym.entity.Role;
 import com.apexgym.entity.Trainer;
 import com.apexgym.repository.TrainerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -20,10 +18,9 @@ import java.util.List;
 public class TrainerDataInitializer implements CommandLineRunner {
 
     private final TrainerRepository trainerRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (trainerRepository.count() == 0) {
             log.info("Initializing trainers data");
 
