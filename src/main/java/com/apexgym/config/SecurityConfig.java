@@ -41,7 +41,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/h2-console/**" , "/dashboard").permitAll()
+                        .requestMatchers(
+                                "/auth/**",
+                                "/h2-console/**",
+                                "/trainers/**"  // ← PUBLIC: No authentication required
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
