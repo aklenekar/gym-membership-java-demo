@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "gym_classes")
@@ -21,6 +19,9 @@ public class GymClass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private String category;
 
     @Column(nullable = false)
     private String name; // e.g., "HIIT Bootcamp", "Yoga Flow"
@@ -48,4 +49,9 @@ public class GymClass {
 
     //@ManyToMany(mappedBy = "bookedClasses")
     //private Set<User> bookedUsers = new HashSet<>();
+
+    @Transient
+    public boolean hasFreeSpots() {
+        return currentBookings < maxCapacity;
+    }
 }

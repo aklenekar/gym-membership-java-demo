@@ -1,27 +1,45 @@
 package com.apexgym.service;
 
-import com.apexgym.entity.FitnessClass;
-import com.apexgym.repository.FitnessClassRepository;
+import com.apexgym.dto.GymClassDTO;
+import com.apexgym.entity.ClassBooking;
+import com.apexgym.entity.GymClass;
+import com.apexgym.entity.User;
+import com.apexgym.repository.ClassBookingRepository;
+import com.apexgym.repository.GymClassRepository;
+import com.apexgym.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FitnessClassService {
 
-    private final FitnessClassRepository repo;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private final GymClassRepository gymClassRepository;
+    private final ClassBookingRepository classBookingRepository;
+    private final UserRepository userRepository;
 
-    /** -----------------------------------------------------------------
-     *  READ
-     * ----------------------------------------------------------------- */
-    public List<FitnessClass> findAll() {
-        return repo.findAll();
+    /**
+     * -----------------------------------------------------------------
+     * READ
+     * -----------------------------------------------------------------
+     */
+    public List<GymClassDTO> findAll() {
+        return gymClassRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+
+    public List<GymClass> findUpcomingClasses(LocalDateTime now) {
+        return gymClassRepository.findUpcomingClasses(now);
     }
 
     /**
@@ -31,11 +49,14 @@ public class FitnessClassService {
      * @param instructor filter by instructor name – pass null/empty for no filter
      * @param day        "today", "tomorrow", "week" or null/empty
      */
-    public List<FitnessClass> findByFilters(String category,
-                                            String instructor,
-                                            String day) {
+    public List<GymClassDTO> findByFilters(String category,
+                                           String instructor,
+                                           String day, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Specification<FitnessClass> spec = Specification.where(null);
+        Specification<GymClass> spec = Specification.where(null);
+        LocalDateTime currentTime = LocalDateTime.now();
 
         if (category != null && !category.isBlank() && !"all".equalsIgnoreCase(category)) {
             spec = spec.and((root, query, cb) ->
@@ -44,71 +65,116 @@ public class FitnessClassService {
 
         if (instructor != null && !instructor.isBlank() && !"all".equalsIgnoreCase(instructor)) {
             spec = spec.and((root, query, cb) ->
-                    cb.equal(cb.lower(root.get("instructor")), instructor.toLowerCase()));
+                    cb.equal(cb.lower(root.get("instructorName")), instructor.toLowerCase()));
         }
 
         if (day != null && !day.isBlank() && !"all".equalsIgnoreCase(day)) {
-            LocalDate start;
-            LocalDate end = null;
-
+            // 1. Declare variables that will be assigned once
+            LocalDateTime finalStart;
+            LocalDateTime finalEnd;
+            // Use temporary variables for calculation if needed,
+            // or just ensure the paths below only assign the variables ONCE.
             switch (day.toLowerCase()) {
-                case "today" -> start = LocalDate.now();
-                case "tomorrow" -> start = LocalDate.now().plusDays(1);
-                case "week" -> {
-                    start = LocalDate.now();
-                    end = start.plusDays(6); // inclusive 7‑day window
+                case "today" -> {
+                    finalStart = currentTime.with(LocalTime.MIN);
+                    finalEnd = finalStart.with(LocalTime.MAX);
                 }
-                default -> start = null;
+                case "tomorrow" -> {
+                    finalStart = currentTime.plusDays(1).with(LocalTime.MIN);
+                    finalEnd = finalStart.with(LocalTime.MAX);
+                }
+                case "week" -> {
+                    finalStart = currentTime.with(LocalTime.MIN);
+                    finalEnd = finalStart.plusDays(7).with(LocalTime.MAX);
+                }
+                default -> {
+                    finalStart = null;
+                    finalEnd = null;
+                }
             }
 
-            if (start != null) {
-                if (end == null) { // a single day
-                    spec = spec.and((root, query, cb) ->
-                            cb.between(cb.function("date", LocalDate.class, root.get("startTime")),
-                                    start, start));
-                } else { // range (week)
-                    spec = spec.and((root, query, cb) ->
-                            cb.between(cb.function("date", LocalDate.class, root.get("startTime")),
-                                    start, LocalDate.now()));
-                }
+            // 2. Because finalStart and finalEnd are assigned exactly once,
+            // they are "effectively final" and safe for the Lambda.
+            if (finalStart != null) {
+                spec = spec.and((root, query, cb) ->
+                        cb.between(root.get("classDate"), finalStart, finalEnd)
+                );
             }
         }
 
-        return repo.findAll(spec);
+        List<GymClass> gymClasses = gymClassRepository.findAll(spec);
+
+        // Get user's bookings
+        List<ClassBooking> userBookings = classBookingRepository
+                .findByUserIdAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(user.getId(), currentTime);
+
+        List<Long> bookedClassIds = userBookings.stream()
+                .map(booking -> booking.getGymClass().getId())
+                .toList();
+
+        List<GymClassDTO> gymClassDTOS =  gymClasses.stream().map(this::toDTO).toList();
+        gymClassDTOS.forEach(gymClassDTO -> gymClassDTO.setIsBooked(bookedClassIds.contains(gymClassDTO.getId())));
+        return gymClassDTOS;
     }
 
-    public FitnessClass getById(Long id) {
-        return repo.findById(id)
+    public GymClassDTO getById(Long id) {
+        return gymClassRepository.findById(id).map(this::toDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id " + id));
     }
 
-    /** -----------------------------------------------------------------
-     *  BOOKING LOGIC
-     * ----------------------------------------------------------------- */
+    /**
+     * -----------------------------------------------------------------
+     * BOOKING LOGIC
+     * -----------------------------------------------------------------
+     */
     @Transactional
-    public FitnessClass bookClass(Long classId) {
-        FitnessClass fc = repo.findById(classId)
+    public GymClassDTO bookClass(Long classId) {
+        GymClass gymClass = gymClassRepository.findById(classId)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id " + classId));
 
-        if (!fc.hasFreeSpots()) {
-            throw new IllegalStateException("No spots left for class '" + fc.getCategory() + "'");
+        if (!gymClass.hasFreeSpots()) {
+            throw new IllegalStateException("No spots left for class '" + gymClass.getCategory() + "'");
         }
 
-        fc.setBooked(fc.getBooked() + 1);
-        return repo.save(fc);
+        gymClass.setCurrentBookings(gymClass.getCurrentBookings() + 1);
+        return toDTO(gymClassRepository.save(gymClass));
     }
 
+
     @Transactional
-    public FitnessClass cancelBooking(Long classId) {
-        FitnessClass fc = repo.findById(classId)
+    public GymClassDTO cancelBooking(Long classId) {
+        GymClass gymClass = gymClassRepository.findById(classId)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id " + classId));
 
-        if (fc.getBooked() <= 0) {
-            throw new IllegalStateException("No bookings to cancel for class '" + fc.getCategory() + "'");
+        if (gymClass.getCurrentBookings() <= 0) {
+            throw new IllegalStateException("No bookings to cancel for class '" + gymClass.getCategory() + "'");
         }
 
-        fc.setBooked(fc.getBooked() - 1);
-        return repo.save(fc);
+        gymClass.setCurrentBookings(gymClass.getCurrentBookings() - 1);
+        return toDTO(gymClassRepository.save(gymClass));
+    }
+
+    private GymClassDTO toDTO(GymClass entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        // Calculate spots remaining for the "spotsInfo" field
+        int remaining = entity.getMaxCapacity() - entity.getCurrentBookings();
+        String spotsInfo = remaining + " spots left";
+
+        return GymClassDTO.builder()
+                .id(entity.getId()) // Converting Long to Integer
+                .name(entity.getName())
+                .instructor(entity.getInstructorName())
+                .location(entity.getLocation())
+                .startTime(entity.getClassDate() != null ? entity.getClassDate().format(FORMATTER) : null)
+                .durationMin(entity.getDurationMinutes() + " mins")
+                .capacity(String.valueOf(entity.getMaxCapacity()))
+                .booked(String.valueOf(entity.getCurrentBookings()))
+                .spotsInfo(spotsInfo)
+                .category("General")
+                .build();
     }
 
 }

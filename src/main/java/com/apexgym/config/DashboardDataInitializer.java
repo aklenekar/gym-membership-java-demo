@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
-@Order(2)
+@Order(3)
 @RequiredArgsConstructor
 @Slf4j
 public class DashboardDataInitializer implements CommandLineRunner {
@@ -72,54 +72,12 @@ public class DashboardDataInitializer implements CommandLineRunner {
         }
 
         // Create Gym Classes
-        if (gymClassRepository.count() == 0) {
-            LocalDateTime now = LocalDateTime.now();
-
-            // Today's class
-            GymClass class1 = GymClass.builder()
-                    .name("HIIT Bootcamp")
-                    .instructorName("Coach Sarah")
-                    .location("Studio A")
-                    .classDate(now.withHour(6).withMinute(0))
-                    .durationMinutes(60)
-                    .maxCapacity(20)
-                    .currentBookings(15)
-                    .isActive(true)
-                    .build();
-            gymClassRepository.save(class1);
-
-            // Tomorrow's class
-            GymClass class2 = GymClass.builder()
-                    .name("Yoga Flow")
-                    .instructorName("Coach Mike")
-                    .location("Studio B")
-                    .classDate(now.plusDays(1).withHour(19).withMinute(30))
-                    .durationMinutes(60)
-                    .maxCapacity(15)
-                    .currentBookings(8)
-                    .isActive(true)
-                    .build();
-            gymClassRepository.save(class2);
-
-            // Day after tomorrow
-            GymClass class3 = GymClass.builder()
-                    .name("Strength & Conditioning")
-                    .instructorName("Coach Tom")
-                    .location("Main Floor")
-                    .classDate(now.plusDays(2).withHour(18).withMinute(0))
-                    .durationMinutes(75)
-                    .maxCapacity(12)
-                    .currentBookings(5)
-                    .isActive(true)
-                    .build();
-            gymClassRepository.save(class3);
-
-            log.info("Created 3 gym classes");
-
+        Optional<GymClass> gymClass = Optional.ofNullable(gymClassRepository.findAll().get(0));
+        if (gymClass.isPresent()) {
             // Book first class for user
             ClassBooking booking = ClassBooking.builder()
                     .user(user)
-                    .gymClass(class1)
+                    .gymClass(gymClass.get())
                     .status(BookingStatus.BOOKED)
                     .build();
             classBookingRepository.save(booking);

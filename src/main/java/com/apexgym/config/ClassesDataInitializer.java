@@ -1,7 +1,7 @@
 package com.apexgym.config;
 
-import com.apexgym.entity.FitnessClass;
-import com.apexgym.repository.FitnessClassRepository;
+import com.apexgym.entity.GymClass;
+import com.apexgym.repository.GymClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -15,86 +15,93 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 @Component
-@Order(3)
+@Order(2)
 @RequiredArgsConstructor
 @Slf4j
 public class ClassesDataInitializer implements CommandLineRunner {
 
-    private final FitnessClassRepository repo;
+    private final GymClassRepository repo;
 
     @Override
     public void run(String... args) {
         if (repo.count() > 0) return;   // already seeded
 
+        log.info("Creating Classes information");
         repo.saveAll(List.of(
-                FitnessClass.builder()
+                GymClass.builder()
                         .category("HIIT")
                         .name("HIIT Bootcamp")
-                        .instructor("Coach Sarah")
+                        .instructorName("Coach Sarah")
                         .location("Studio A")
-                        .startTime(LocalDateTime.now().withHour(18).withMinute(0))
-                        .durationMin(60)
-                        .capacity(20)
-                        .booked(12)
+                        .classDate(LocalDateTime.now().withHour(18).withMinute(0))
+                        .durationMinutes(60)
+                        .maxCapacity(20)
+                        .currentBookings(12)
+                        .isActive(true)
                         .build(),
 
-                FitnessClass.builder()
+                GymClass.builder()
                         .category("Yoga")
                         .name("Yoga Flow")
-                        .instructor("Coach Emma")
+                        .instructorName("Coach Emma")
                         .location("Studio B")
-                        .startTime(LocalDateTime.now().plusDays(1).withHour(7).withMinute(30))
-                        .durationMin(60)
-                        .capacity(15)
-                        .booked(8)
+                        .classDate(LocalDateTime.now().plusDays(1).withHour(7).withMinute(30))
+                        .durationMinutes(60)
+                        .maxCapacity(15)
+                        .currentBookings(8)
+                        .isActive(true)
                         .build(),
 
-                FitnessClass.builder()
+                GymClass.builder()
                         .category("Strength")
                         .name("Strength & Conditioning")
-                        .instructor("Coach Tom")
+                        .instructorName("Coach Tom")
                         .location("Main Floor")
-                        .startTime(LocalDateTime.now().plusDays(1).withHour(18).withMinute(0))
-                        .durationMin(75)
-                        .capacity(12)
-                        .booked(5)
+                        .classDate(LocalDateTime.now().plusDays(1).withHour(18).withMinute(0))
+                        .durationMinutes(75)
+                        .maxCapacity(12)
+                        .currentBookings(5)
+                        .isActive(true)
                         .build(),
 
-                FitnessClass.builder()
+                GymClass.builder()
                         .category("Cardio")
                         .name("Cycling Endurance")
-                        .instructor("Coach Mike")
+                        .instructorName("Coach Mike")
                         .location("Spin Studio")
-                        .startTime(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+                        .classDate(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
                                 .atTime(17, 30))
-                        .durationMin(45)
-                        .capacity(20)
-                        .booked(18)
+                        .durationMinutes(45)
+                        .maxCapacity(20)
+                        .currentBookings(18)
+                        .isActive(true)
                         .build(),
 
                 // … add more as you like …
-                FitnessClass.builder()
+                GymClass.builder()
                         .category("Boxing")
                         .name("Boxing Fundamentals")
-                        .instructor("Coach David")
+                        .instructorName("Coach David")
                         .location("Combat Zone")
-                        .startTime(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
+                        .classDate(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
                                 .atTime(10, 0))
-                        .durationMin(60)
-                        .capacity(15)
-                        .booked(10)
+                        .durationMinutes(60)
+                        .maxCapacity(15)
+                        .currentBookings(10)
+                        .isActive(true)
                         .build(),
 
-                FitnessClass.builder()
+                GymClass.builder()
                         .category("Pilates")
                         .name("Core Pilates")
-                        .instructor("Coach Jessica")
+                        .instructorName("Coach Jessica")
                         .location("Studio C")
-                        .startTime(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+                        .classDate(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
                                 .atTime(9, 0))
-                        .durationMin(50)
-                        .capacity(10)
-                        .booked(6)
+                        .durationMinutes(50)
+                        .maxCapacity(10)
+                        .currentBookings(6)
+                        .isActive(true)
                         .build()
         ));
     }

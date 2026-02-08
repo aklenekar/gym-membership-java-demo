@@ -18,7 +18,7 @@ public class DashboardService {
     private final MembershipRepository membershipRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final ClassBookingRepository classBookingRepository;
-    private final GymClassRepository gymClassRepository;
+    private final FitnessClassService fitnessClassService;
     private final ActivityRepository activityRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
@@ -89,7 +89,7 @@ public class DashboardService {
 
     private List<UpcomingClassDTO> getUpcomingClasses(Long userId) {
         LocalDateTime now = LocalDateTime.now();
-        List<GymClass> upcomingClasses = gymClassRepository.findUpcomingClasses(now);
+        List<GymClass> upcomingClasses = fitnessClassService.findUpcomingClasses(now);
 
         // Get user's bookings
         List<ClassBooking> userBookings = classBookingRepository
@@ -103,7 +103,7 @@ public class DashboardService {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM d");
 
         return upcomingClasses.stream()
-                .limit(10)
+                .limit(3)
                 .map(gymClass -> UpcomingClassDTO.builder()
                         .id(gymClass.getId())
                         .name(gymClass.getName())
