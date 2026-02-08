@@ -18,7 +18,7 @@ public class DashboardService {
     private final MembershipRepository membershipRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final ClassBookingRepository classBookingRepository;
-    private final FitnessClassService fitnessClassService;
+    private final GymClassService gymClassService;
     private final ActivityRepository activityRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
@@ -64,14 +64,14 @@ public class DashboardService {
 
         // Sum hours this month
         Long totalMinutes = workoutSessionRepository.sumDurationByUserIdAndStartTimeAfter(userId, startOfMonth);
-        Double hours = totalMinutes / 60.0;
+        double hours = totalMinutes / 60.0;
 
         // Count completed classes this month
         Long classes = classBookingRepository.countCompletedClassesByUserIdAndDateAfter(userId, startOfMonth);
 
         // Calculate average goal progress
         List<Goal> activeGoals = goalRepository.findByUserIdAndIsActiveTrueOrderByStartDateDesc(userId);
-        Integer goalProgress = 0;
+        int goalProgress = 0;
         if (!activeGoals.isEmpty()) {
             goalProgress = (int) activeGoals.stream()
                     .mapToInt(Goal::getProgressPercentage)
@@ -89,7 +89,7 @@ public class DashboardService {
 
     private List<UpcomingClassDTO> getUpcomingClasses(Long userId) {
         LocalDateTime now = LocalDateTime.now();
-        List<GymClass> upcomingClasses = fitnessClassService.findUpcomingClasses(now);
+        List<GymClass> upcomingClasses = gymClassService.findUpcomingClasses(now);
 
         // Get user's bookings
         List<ClassBooking> userBookings = classBookingRepository
@@ -97,10 +97,9 @@ public class DashboardService {
 
         List<Long> bookedClassIds = userBookings.stream()
                 .map(booking -> booking.getGymClass().getId())
-                .collect(Collectors.toList());
+                .toList();
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM d");
 
         return upcomingClasses.stream()
                 .limit(3)

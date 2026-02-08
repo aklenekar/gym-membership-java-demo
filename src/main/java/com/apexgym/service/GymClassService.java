@@ -8,7 +8,6 @@ import com.apexgym.repository.ClassBookingRepository;
 import com.apexgym.repository.GymClassRepository;
 import com.apexgym.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class FitnessClassService {
+public class GymClassService {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final GymClassRepository gymClassRepository;
@@ -120,38 +119,6 @@ public class FitnessClassService {
     public GymClassDTO getById(Long id) {
         return gymClassRepository.findById(id).map(this::toDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id " + id));
-    }
-
-    /**
-     * -----------------------------------------------------------------
-     * BOOKING LOGIC
-     * -----------------------------------------------------------------
-     */
-    @Transactional
-    public GymClassDTO bookClass(Long classId) {
-        GymClass gymClass = gymClassRepository.findById(classId)
-                .orElseThrow(() -> new EntityNotFoundException("Class not found with id " + classId));
-
-        if (!gymClass.hasFreeSpots()) {
-            throw new IllegalStateException("No spots left for class '" + gymClass.getCategory() + "'");
-        }
-
-        gymClass.setCurrentBookings(gymClass.getCurrentBookings() + 1);
-        return toDTO(gymClassRepository.save(gymClass));
-    }
-
-
-    @Transactional
-    public GymClassDTO cancelBooking(Long classId) {
-        GymClass gymClass = gymClassRepository.findById(classId)
-                .orElseThrow(() -> new EntityNotFoundException("Class not found with id " + classId));
-
-        if (gymClass.getCurrentBookings() <= 0) {
-            throw new IllegalStateException("No bookings to cancel for class '" + gymClass.getCategory() + "'");
-        }
-
-        gymClass.setCurrentBookings(gymClass.getCurrentBookings() - 1);
-        return toDTO(gymClassRepository.save(gymClass));
     }
 
     private GymClassDTO toDTO(GymClass entity) {
