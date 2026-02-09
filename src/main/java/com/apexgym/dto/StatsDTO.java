@@ -14,5 +14,6 @@ public class StatsDTO {
     private Long workouts;
     private Double hours;
     private Long classes;
+    private Long caloriesBurned;
     private Integer goalProgress; // percentage
 }

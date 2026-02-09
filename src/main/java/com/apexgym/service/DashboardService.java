@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -93,15 +94,14 @@ public class DashboardService {
 
         // Get user's bookings
         List<ClassBooking> userBookings = classBookingRepository
-                .findByUserIdAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(userId, now);
+                .findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(userId, BookingStatus.BOOKED, now);
 
-        List<Long> bookedClassIds = userBookings.stream()
-                .map(booking -> booking.getGymClass().getId())
-                .toList();
+        Map<Long, ClassBooking> bookingClassIds = userBookings.stream()
+                .collect(Collectors.toMap(cb -> cb.getGymClass().getId(), cb -> cb));
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
 
-        return upcomingClasses.stream()
+        List<UpcomingClassDTO> upcomingClassDTOS = upcomingClasses.stream()
                 .limit(3)
                 .map(gymClass -> UpcomingClassDTO.builder()
                         .id(gymClass.getId())
@@ -110,9 +110,17 @@ public class DashboardService {
                         .location(gymClass.getLocation())
                         .time(gymClass.getClassDate().format(timeFormatter))
                         .date(getDateLabel(gymClass.getClassDate()))
-                        .isBooked(bookedClassIds.contains(gymClass.getId()))
                         .build())
-                .collect(Collectors.toList());
+                .toList();
+
+        upcomingClassDTOS.forEach(gymClassDTO -> {
+            if (bookingClassIds.containsKey(gymClassDTO.getId())) {
+                gymClassDTO.setIsBooked(true);
+                gymClassDTO.setBookingId(bookingClassIds.get(gymClassDTO.getId()).getId());
+            }
+        });
+
+        return upcomingClassDTOS;
     }
 
     private List<ActivityDTO> getRecentActivities(Long userId) {

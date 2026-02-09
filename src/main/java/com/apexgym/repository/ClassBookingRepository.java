@@ -19,5 +19,5 @@ public interface ClassBookingRepository extends JpaRepository<ClassBooking, Long
     @Query("SELECT COUNT(cb) FROM ClassBooking cb WHERE cb.user.id = :userId AND cb.status = 'COMPLETED' AND cb.gymClass.classDate >= :startDate")
     Long countCompletedClassesByUserIdAndDateAfter(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
 
-    List<ClassBooking> findByUserIdAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(Long userId, LocalDateTime now);
+    List<ClassBooking> findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(Long userId, BookingStatus status, LocalDateTime now);
 }

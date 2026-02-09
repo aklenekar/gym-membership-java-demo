@@ -21,4 +21,5 @@ public class GymClassDTO {
     private String booked;
     private String spotsInfo;
     private Boolean isBooked;
+    private Long bookingId;
 }

@@ -61,9 +61,9 @@ public class DashboardDataInitializer implements CommandLineRunner {
                 WorkoutSession session = WorkoutSession.builder()
                         .user(user)
                         .workoutType(i % 3 == 0 ? "Upper Body" : i % 3 == 1 ? "Cardio" : "HIIT")
+                        .category(i % 3 == 0 ? GymClassCategory.Strength : i % 3 == 1 ? GymClassCategory.Cardio : GymClassCategory.HIIT)
                         .startTime(now.minusDays(i).minusHours(2))
                         .endTime(now.minusDays(i).minusMinutes(30))
-                        .durationMinutes(90)
                         .caloriesBurned(450 + (i * 10))
                         .build();
                 workoutSessionRepository.save(session);

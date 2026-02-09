@@ -17,4 +17,7 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
 
     @Query("SELECT COALESCE(SUM(w.durationMinutes), 0) FROM WorkoutSession w WHERE w.user.id = :userId AND w.startTime >= :startDate")
     Long sumDurationByUserIdAndStartTimeAfter(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT COALESCE(SUM(w.caloriesBurned), 0) FROM WorkoutSession w WHERE w.user.id = :userId AND w.startTime >= :startDate")
+    Long sumCaloriesBurnedByUserIdAndStartTimeAfter(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
 }

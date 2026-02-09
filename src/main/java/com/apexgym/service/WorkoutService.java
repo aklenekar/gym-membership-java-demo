@@ -45,6 +45,7 @@ public class WorkoutService {
         Long totalMinutes = workoutSessionRepository.sumDurationByUserIdAndStartTimeAfter(userId, startOfMonth);
         double hours = totalMinutes / 60.0;
         Long classes = classBookingRepository.countCompletedClassesByUserIdAndDateAfter(userId, startOfMonth);
+        Long caloriesBurned = workoutSessionRepository.sumCaloriesBurnedByUserIdAndStartTimeAfter(userId, startOfMonth);
 
         Integer goalProgress = (int) goalRepository.findByUserIdAndIsActiveTrueOrderByStartDateDesc(userId)
                 .stream()
@@ -56,6 +57,7 @@ public class WorkoutService {
                 .workouts(workouts)
                 .hours(Math.round(hours * 10.0) / 10.0)
                 .classes(classes)
+                .caloriesBurned(caloriesBurned)
                 .goalProgress(goalProgress)
                 .build();
     }
@@ -65,6 +67,7 @@ public class WorkoutService {
 
         return WorkoutDTO.builder()
                 .id(session.getId())
+                .category(session.getCategory().name())
                 .workoutType(session.getWorkoutType())
                 .startTime(session.getStartTime().format(formatter))
                 .durationMinutes(session.getDurationMinutes())

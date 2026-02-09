@@ -1,6 +1,7 @@
 package com.apexgym.service;
 
 import com.apexgym.dto.GymClassDTO;
+import com.apexgym.entity.BookingStatus;
 import com.apexgym.entity.ClassBooking;
 import com.apexgym.entity.GymClass;
 import com.apexgym.entity.User;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -105,14 +107,18 @@ public class GymClassService {
 
         // Get user's bookings
         List<ClassBooking> userBookings = classBookingRepository
-                .findByUserIdAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(user.getId(), currentTime);
+                .findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(user.getId(), BookingStatus.BOOKED, currentTime);
 
-        List<Long> bookedClassIds = userBookings.stream()
-                .map(booking -> booking.getGymClass().getId())
-                .toList();
+        Map<Long, ClassBooking> bookingClassIds = userBookings.stream()
+                .collect(Collectors.toMap(cb -> cb.getGymClass().getId(), cb -> cb));
 
         List<GymClassDTO> gymClassDTOS =  gymClasses.stream().map(this::toDTO).toList();
-        gymClassDTOS.forEach(gymClassDTO -> gymClassDTO.setIsBooked(bookedClassIds.contains(gymClassDTO.getId())));
+        gymClassDTOS.forEach(gymClassDTO -> {
+            if (bookingClassIds.containsKey(gymClassDTO.getId())) {
+                gymClassDTO.setIsBooked(true);
+                gymClassDTO.setBookingId(bookingClassIds.get(gymClassDTO.getId()).getId());
+            }
+        });
         return gymClassDTOS;
     }
 
@@ -140,7 +146,7 @@ public class GymClassService {
                 .capacity(String.valueOf(entity.getMaxCapacity()))
                 .booked(String.valueOf(entity.getCurrentBookings()))
                 .spotsInfo(spotsInfo)
-                .category("General")
+                .category(entity.getCategory().name())
                 .build();
     }
 

@@ -24,6 +24,10 @@ public class WorkoutSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private GymClassCategory category;
+
     @Column(name = "workout_type")
     private String workoutType; // e.g., "Upper Body", "Cardio", "HIIT"
 

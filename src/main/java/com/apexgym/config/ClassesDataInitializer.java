@@ -1,6 +1,7 @@
 package com.apexgym.config;
 
 import com.apexgym.entity.GymClass;
+import com.apexgym.entity.GymClassCategory;
 import com.apexgym.repository.GymClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class ClassesDataInitializer implements CommandLineRunner {
         log.info("Creating Classes information");
         repo.saveAll(List.of(
                 GymClass.builder()
-                        .category("HIIT")
+                        .category(GymClassCategory.HIIT)
                         .name("HIIT Bootcamp")
                         .instructorName("Coach Sarah")
                         .location("Studio A")
@@ -41,7 +42,7 @@ public class ClassesDataInitializer implements CommandLineRunner {
                         .build(),
 
                 GymClass.builder()
-                        .category("Yoga")
+                        .category(GymClassCategory.Yoga)
                         .name("Yoga Flow")
                         .instructorName("Coach Emma")
                         .location("Studio B")
@@ -53,7 +54,7 @@ public class ClassesDataInitializer implements CommandLineRunner {
                         .build(),
 
                 GymClass.builder()
-                        .category("Strength")
+                        .category(GymClassCategory.Strength)
                         .name("Strength & Conditioning")
                         .instructorName("Coach Tom")
                         .location("Main Floor")
@@ -65,7 +66,7 @@ public class ClassesDataInitializer implements CommandLineRunner {
                         .build(),
 
                 GymClass.builder()
-                        .category("Cardio")
+                        .category(GymClassCategory.Cardio)
                         .name("Cycling Endurance")
                         .instructorName("Coach Mike")
                         .location("Spin Studio")
@@ -79,7 +80,7 @@ public class ClassesDataInitializer implements CommandLineRunner {
 
                 // … add more as you like …
                 GymClass.builder()
-                        .category("Boxing")
+                        .category(GymClassCategory.Boxing)
                         .name("Boxing Fundamentals")
                         .instructorName("Coach David")
                         .location("Combat Zone")
@@ -92,7 +93,7 @@ public class ClassesDataInitializer implements CommandLineRunner {
                         .build(),
 
                 GymClass.builder()
-                        .category("Pilates")
+                        .category(GymClassCategory.Pilates)
                         .name("Core Pilates")
                         .instructorName("Coach Jessica")
                         .location("Studio C")

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class WorkoutDTO {
     private Long id;
+    private String category;
     private String workoutType;
     private String startTime;
     private Integer durationMinutes;

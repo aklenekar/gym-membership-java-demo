@@ -20,8 +20,9 @@ public class GymClass {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String category;
+    private GymClassCategory category;
 
     @Column(nullable = false)
     private String name; // e.g., "HIIT Bootcamp", "Yoga Flow"

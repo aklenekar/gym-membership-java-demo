@@ -16,4 +16,5 @@ public class UpcomingClassDTO {
     private String time;
     private String date;
     private Boolean isBooked;
+    private Long bookingId;
 }
