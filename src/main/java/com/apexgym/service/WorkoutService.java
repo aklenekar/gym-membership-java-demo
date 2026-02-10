@@ -4,6 +4,7 @@ import com.apexgym.dto.StatsDTO;
 import com.apexgym.dto.WorkoutDTO;
 import com.apexgym.dto.WorkoutsResponseDTO;
 import com.apexgym.entity.Goal;
+import com.apexgym.entity.GymClass;
 import com.apexgym.entity.User;
 import com.apexgym.entity.WorkoutSession;
 import com.apexgym.repository.UserRepository;
@@ -11,8 +12,10 @@ import com.apexgym.repository.WorkoutSessionRepository;
 import com.apexgym.repository.ClassBookingRepository;
 import com.apexgym.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,11 +29,56 @@ public class WorkoutService {
     private final ClassBookingRepository classBookingRepository;
     private final GoalRepository goalRepository;
 
-    public WorkoutsResponseDTO getWorkouts(String email) {
+    public WorkoutsResponseDTO getWorkouts(String email, String workout, String day) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<WorkoutSession> sessions = workoutSessionRepository.findByUserIdOrderByStartTimeDesc(user.getId());
+        Specification<WorkoutSession> spec = Specification.where(null);
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("user"), user));
+
+        if (workout != null && !workout.isBlank() && !"all".equalsIgnoreCase(workout)) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(cb.lower(root.get("category")), workout.toLowerCase()));
+        }
+
+        if (day != null && !day.isBlank() && !"all".equalsIgnoreCase(day)) {
+            // 1. Declare variables that will be assigned once
+            LocalDateTime finalStart;
+            LocalDateTime finalEnd;
+            // Use temporary variables for calculation if needed,
+            // or just ensure the paths below only assign the variables ONCE.
+            switch (day.toLowerCase()) {
+                case "today" -> {
+                    finalStart = currentTime.with(LocalTime.MIN);
+                    finalEnd = finalStart.with(LocalTime.MAX);
+                }
+                case "tomorrow" -> {
+                    finalStart = currentTime.plusDays(1).with(LocalTime.MIN);
+                    finalEnd = finalStart.with(LocalTime.MAX);
+                }
+                case "week" -> {
+                    finalStart = currentTime.with(LocalTime.MIN);
+                    finalEnd = finalStart.plusDays(7).with(LocalTime.MAX);
+                }
+                default -> {
+                    finalStart = null;
+                    finalEnd = null;
+                }
+            }
+
+            // 2. Because finalStart and finalEnd are assigned exactly once,
+            // they are "effectively final" and safe for the Lambda.
+            if (finalStart != null) {
+                spec = spec.and((root, query, cb) ->
+                        cb.between(root.get("startTime"), finalStart, finalEnd)
+                );
+            }
+        }
+
+        List<WorkoutSession> sessions = workoutSessionRepository.findAll(spec);
 
         return WorkoutsResponseDTO.builder()
                 .monthlyStats(getMonthlyStats(user.getId()))

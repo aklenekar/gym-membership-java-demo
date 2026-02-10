@@ -19,10 +19,11 @@ public class WorkoutController {
     private final WorkoutService workoutService;
 
     @GetMapping
-    public ResponseEntity<?> getWorkouts() {
+    public ResponseEntity<?> getWorkouts(@RequestParam(required = false) String workout,
+                                         @RequestParam(required = false) String day) {
         try {
             String email = commonHelper.getCurrentUserEmail();
-            WorkoutsResponseDTO workouts = workoutService.getWorkouts(email);
+            WorkoutsResponseDTO workouts = workoutService.getWorkouts(email, workout, day);
             return ResponseEntity.ok(workouts);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
