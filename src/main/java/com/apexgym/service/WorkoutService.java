@@ -2,18 +2,19 @@ package com.apexgym.service;
 
 import com.apexgym.dto.StatsDTO;
 import com.apexgym.dto.WorkoutDTO;
+import com.apexgym.dto.WorkoutRequest;
 import com.apexgym.dto.WorkoutsResponseDTO;
-import com.apexgym.entity.Goal;
-import com.apexgym.entity.GymClass;
-import com.apexgym.entity.User;
-import com.apexgym.entity.WorkoutSession;
+import com.apexgym.entity.*;
 import com.apexgym.repository.UserRepository;
 import com.apexgym.repository.WorkoutSessionRepository;
 import com.apexgym.repository.ClassBookingRepository;
 import com.apexgym.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -77,8 +78,9 @@ public class WorkoutService {
                 );
             }
         }
+        Sort sortByStartTime = Sort.by(Sort.Direction.DESC, "startTime");
 
-        List<WorkoutSession> sessions = workoutSessionRepository.findAll(spec);
+        List<WorkoutSession> sessions = workoutSessionRepository.findAll(spec, sortByStartTime);
 
         return WorkoutsResponseDTO.builder()
                 .monthlyStats(getMonthlyStats(user.getId()))
@@ -122,5 +124,32 @@ public class WorkoutService {
                 .caloriesBurned(session.getCaloriesBurned())
                 .notes(session.getNotes())
                 .build();
+    }
+
+    public WorkoutDTO submitWorkoutSession(WorkoutRequest workoutRequest, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        // 1. Parse the strings into Date and Time objects
+        LocalDate date = LocalDate.parse(workoutRequest.getStartDate());
+        LocalTime time = LocalTime.parse(workoutRequest.getStartTime());
+
+        // 2. Combine into startTime (LocalDateTime)
+        LocalDateTime startTime = LocalDateTime.of(date, time);
+
+        // 3. Convert duration string to long and calculate endTime
+        long durationMinutes = Long.parseLong(workoutRequest.getDurationMinutes());
+        LocalDateTime endTime = startTime.plusMinutes(durationMinutes);
+
+        WorkoutSession session = WorkoutSession.builder()
+                .user(user)
+                .workoutType(GymClassCategory.valueOf(workoutRequest.getCategory()).getType())
+                .category(GymClassCategory.valueOf(workoutRequest.getCategory()))
+                .startTime(startTime)
+                .endTime(endTime)
+                .caloriesBurned(workoutRequest.getCaloriesBurned())
+                .notes(workoutRequest.getNotes())
+                .build();
+        workoutSessionRepository.save(session);
+        return convertToDTO(session);
     }
 }

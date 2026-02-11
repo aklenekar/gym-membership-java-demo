@@ -1,5 +1,7 @@
 package com.apexgym.controller;
 
+import com.apexgym.dto.WorkoutDTO;
+import com.apexgym.dto.WorkoutRequest;
 import com.apexgym.dto.WorkoutsResponseDTO;
 import com.apexgym.service.WorkoutService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,20 @@ public class WorkoutController {
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "Failed to fetch workouts");
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<?> submitWorkout(@RequestBody WorkoutRequest workoutRequest) {
+        try {
+            String email = commonHelper.getCurrentUserEmail();
+            WorkoutDTO workout = workoutService.submitWorkoutSession(workoutRequest, email);
+            return ResponseEntity.ok(workout);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Failed to submit workout");
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }

@@ -58,13 +58,15 @@ public class DashboardDataInitializer implements CommandLineRunner {
             LocalDateTime now = LocalDateTime.now();
 
             for (int i = 0; i < 18; i++) {
+                String type = i % 3 == 0 ? "Upper Body" : i % 3 == 1 ? "Cardio" : "HIIT";
                 WorkoutSession session = WorkoutSession.builder()
                         .user(user)
-                        .workoutType(i % 3 == 0 ? "Upper Body" : i % 3 == 1 ? "Cardio" : "HIIT")
+                        .workoutType(type)
                         .category(i % 3 == 0 ? GymClassCategory.Strength : i % 3 == 1 ? GymClassCategory.Cardio : GymClassCategory.HIIT)
                         .startTime(now.minusDays(i).minusHours(2))
                         .endTime(now.minusDays(i).minusMinutes(30))
                         .caloriesBurned(450 + (i * 10))
+                        .notes("This is auto generated sessions about " + type)
                         .build();
                 workoutSessionRepository.save(session);
             }
