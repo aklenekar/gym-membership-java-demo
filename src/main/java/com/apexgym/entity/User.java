@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +44,48 @@ public class User implements UserDetails {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "gender")
+    private String gender;
+
+    // Address
+    @Column(name = "street")
+    private String street;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "state")
+    private String state;
+
+    @Column(name = "zip_code")
+    private String zipCode;
+
+    @Column(name = "country")
+    private String country;
+
+    // Emergency Contact
+    @Column(name = "emergency_contact_name")
+    private String emergencyContactName;
+
+    @Column(name = "emergency_contact_phone")
+    private String emergencyContactPhone;
+
+    @Column(name = "emergency_contact_relationship")
+    private String emergencyContactRelationship;
+
+    // Health Info
+    @Column(name = "medical_conditions", length = 1000)
+    private String medicalConditions;
+
+    @Column(name = "fitness_goals", length = 1000)
+    private String fitnessGoals;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

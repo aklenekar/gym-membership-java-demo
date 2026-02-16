@@ -5,10 +5,7 @@ import com.apexgym.dto.WorkoutDTO;
 import com.apexgym.dto.WorkoutRequest;
 import com.apexgym.dto.WorkoutsResponseDTO;
 import com.apexgym.entity.*;
-import com.apexgym.repository.UserRepository;
-import com.apexgym.repository.WorkoutSessionRepository;
-import com.apexgym.repository.ClassBookingRepository;
-import com.apexgym.repository.GoalRepository;
+import com.apexgym.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,12 +26,13 @@ public class WorkoutService {
     private final UserRepository userRepository;
     private final ClassBookingRepository classBookingRepository;
     private final GoalRepository goalRepository;
+    private final ActivityRepository activityRepository;
 
     public WorkoutsResponseDTO getWorkouts(String email, String workout, String day) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Specification<WorkoutSession> spec = Specification.where(null);
+        Specification<WorkoutSession> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
         LocalDateTime currentTime = LocalDateTime.now();
 
         spec = spec.and((root, query, cb) ->
@@ -150,6 +148,16 @@ public class WorkoutService {
                 .notes(workoutRequest.getNotes())
                 .build();
         workoutSessionRepository.save(session);
+
+        // Create activity
+        Activity activity = Activity.builder()
+                .user(user)
+                .type(ActivityType.WORKOUT)
+                .title("Completed " + GymClassCategory.valueOf(workoutRequest.getCategory()).getType() + " workout")
+                .icon("💪")
+                .build();
+        activityRepository.save(activity);
+
         return convertToDTO(session);
     }
 }

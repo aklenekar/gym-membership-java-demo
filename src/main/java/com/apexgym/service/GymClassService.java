@@ -56,7 +56,7 @@ public class GymClassService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Specification<GymClass> spec = Specification.where(null);
+        Specification<GymClass> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
         LocalDateTime currentTime = LocalDateTime.now();
 
         if (category != null && !category.isBlank() && !"all".equalsIgnoreCase(category)) {
