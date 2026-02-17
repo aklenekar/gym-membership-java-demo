@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 "/trainers/**",
                                 "/profile/**"// ← PUBLIC: No authentication required
                         ).permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

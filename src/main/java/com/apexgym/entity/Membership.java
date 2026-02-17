@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "memberships")
@@ -43,4 +44,18 @@ public class Membership {
 
     @Column(name = "auto_renew")
     private Boolean autoRenew = true;
+
+    // Add to Membership.java if missing
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (updatedAt == null) updatedAt = LocalDateTime.now();
+    }
 }

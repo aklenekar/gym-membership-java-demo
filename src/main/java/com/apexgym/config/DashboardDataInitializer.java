@@ -4,6 +4,7 @@ import com.apexgym.entity.*;
 import com.apexgym.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class DashboardDataInitializer implements CommandLineRunner {
     private final GoalRepository goalRepository;
 
     @Override
-    public void run(String... args) {
+    public void run(String @NonNull ... args) {
         log.info("Initializing dashboard demo data...");
 
         Optional<User> userOpt = userRepository.findByEmail("user@apexgym.com");
@@ -74,17 +75,16 @@ public class DashboardDataInitializer implements CommandLineRunner {
         }
 
         // Create Gym Classes
-        Optional<GymClass> gymClass = Optional.ofNullable(gymClassRepository.findAll().get(0));
-        if (gymClass.isPresent()) {
-            // Book first class for user
-            ClassBooking booking = ClassBooking.builder()
-                    .user(user)
-                    .gymClass(gymClass.get())
-                    .status(BookingStatus.BOOKED)
-                    .build();
-            classBookingRepository.save(booking);
-            log.info("Booked first class for demo user");
-        }
+        Optional<GymClass> gymClass = Optional.of(gymClassRepository.findAll().get(0));
+        // Book first class for user
+        ClassBooking booking = ClassBooking.builder()
+                .user(user)
+                .category(GymClassCategory.HIIT.name())
+                .gymClass(gymClass.get())
+                .status(BookingStatus.BOOKED)
+                .build();
+        classBookingRepository.save(booking);
+        log.info("Booked first class for demo user");
 
         // Create Activities
         if (activityRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).isEmpty()) {

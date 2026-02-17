@@ -1,19 +1,27 @@
 package com.apexgym.service;
 
 import com.apexgym.dto.*;
+import com.apexgym.entity.ClassBooking;
 import com.apexgym.entity.Membership;
 import com.apexgym.entity.Role;
 import com.apexgym.entity.User;
+import com.apexgym.repository.ClassBookingRepository;
 import com.apexgym.repository.MembershipRepository;
 import com.apexgym.repository.UserRepository;
+import com.apexgym.repository.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +30,8 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final MembershipRepository membershipRepository;
     private final PasswordEncoder passwordEncoder;
+    private final WorkoutSessionRepository workoutSessionRepository;
+    private final ClassBookingRepository classBookingRepository;
 
     public ProfileDTO getProfile(String email) {
         User user = userRepository.findByEmail(email)
@@ -208,5 +218,59 @@ public class ProfileService {
         User saved = userRepository.save(builder.build());
 
         return getProfile(saved.getEmail());
+    }
+
+    public UserProfile getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Membership membership = membershipRepository.findByUserId(user.getId())
+                .orElse(null);
+
+        return UserProfile.builder()
+                .goals(user.getFitnessGoals())
+                .level(determineFitnessLevel(user.getId()))
+                .availability(determineAvailability(user.getId()))
+                .preferences(user.getPreferences())
+                .age(calculateAge(user.getDateOfBirth()))
+                .membershipPlan(membership != null ? membership.getPlan().name() : "NONE")
+                .build();
+    }
+
+    private String determineFitnessLevel(Long userId) {
+        LocalDateTime threeMonthsAgo = LocalDateTime.now().minusMonths(3);
+        Long workoutCount = workoutSessionRepository.countByUserIdAndStartTimeAfter(userId, threeMonthsAgo);
+
+        if (workoutCount >= 40) return "Advanced";
+        if (workoutCount >= 20) return "Intermediate";
+        return "Beginner";
+    }
+
+    private String determineAvailability(Long userId) {
+        List<ClassBooking> recentBookings = classBookingRepository
+                .findByUserIdAndBookedAtAfter(userId, LocalDateTime.now().minusMonths(1));
+
+        Map<String, Long> timePreferences = recentBookings.stream()
+                .collect(Collectors.groupingBy(
+                        booking -> getTimeOfDay(booking.getGymClass().getClassDate()),
+                        Collectors.counting()
+                ));
+
+        return timePreferences.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("Flexible");
+    }
+
+    private String getTimeOfDay(LocalDateTime time) {
+        int hour = time.getHour();
+        if (hour < 12) return "Morning";
+        if (hour < 17) return "Afternoon";
+        return "Evening";
+    }
+
+    private Integer calculateAge(LocalDate birthDate) {
+        if (birthDate == null) return null;
+        return Period.between(birthDate, LocalDate.now()).getYears();
     }
 }

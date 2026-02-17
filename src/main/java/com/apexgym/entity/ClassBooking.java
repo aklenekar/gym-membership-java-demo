@@ -28,6 +28,9 @@ public class ClassBooking {
     @JoinColumn(name = "class_id", nullable = false)
     private GymClass gymClass;
 
+    @Column(name = "category")
+    private String category;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus status; // BOOKED, CANCELLED, COMPLETED, NO_SHOW

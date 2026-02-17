@@ -1,5 +1,6 @@
 package com.apexgym.service;
 
+import com.apexgym.dto.ClassAttendance;
 import com.apexgym.dto.GymClassDTO;
 import com.apexgym.entity.BookingStatus;
 import com.apexgym.entity.ClassBooking;
@@ -148,6 +149,27 @@ public class GymClassService {
                 .spotsInfo(spotsInfo)
                 .category(entity.getCategory().name())
                 .build();
+    }
+
+    public List<ClassAttendance> getAttendanceHistory(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+
+        return classBookingRepository.findByUserIdAndStatusAndBookedAtAfter(
+                        user.getId(),
+                        BookingStatus.COMPLETED,
+                        thirtyDaysAgo
+                )
+                .stream()
+                .map(booking -> ClassAttendance.builder()
+                        .className(booking.getGymClass().getName())
+                        .category(booking.getGymClass().getCategory().getType())
+                        .instructor(booking.getGymClass().getInstructorName())
+                        .attendedAt(booking.getBookedAt())
+                        .build())
+                .collect(Collectors.toList());
     }
 
 }

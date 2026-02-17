@@ -20,4 +20,21 @@ public interface ClassBookingRepository extends JpaRepository<ClassBooking, Long
     Long countCompletedClassesByUserIdAndDateAfter(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
 
     List<ClassBooking> findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(Long userId, BookingStatus status, LocalDateTime now);
+
+    List<ClassBooking> findByUserIdAndStatusAndBookedAtAfter(Long userId, BookingStatus status, LocalDateTime date);
+
+    List<ClassBooking> findByUserIdAndBookedAtAfter(Long userId, LocalDateTime date);
+
+    // Admin - NEW queries to add
+    @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.status = 'BOOKED'")
+    Long countTotalActiveBookings();
+
+    @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.gymClass.id = :classId AND b.status = 'BOOKED'")
+    Long countBookingsByClassId(@Param("classId") Long classId);
+
+    @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.status = 'CANCELLED' AND b.bookedAt >= :since")
+    Long countCancellationsSince(@Param("since") LocalDateTime since);
+
+    @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.status = 'WAITLISTED'")
+    Long countWaitlisted();
 }

@@ -87,6 +87,9 @@ public class User implements UserDetails {
     @Column(name = "fitness_goals", length = 1000)
     private String fitnessGoals;
 
+    @Column(name = "preferences", length = 500, nullable = true)
+    private String preferences;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

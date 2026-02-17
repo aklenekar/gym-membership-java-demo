@@ -1,13 +1,16 @@
 package com.apexgym.service;
 
 import com.apexgym.dto.*;
+import com.apexgym.entity.Achievement;
 import com.apexgym.entity.Goal;
+import com.apexgym.entity.PersonalRecord;
 import com.apexgym.entity.User;
 import com.apexgym.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +22,8 @@ public class ProgressService {
     private final GoalRepository goalRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final ClassBookingRepository classBookingRepository;
-    private final ActivityRepository activityRepository;
+    private final PersonalRecordRepository personalRecordRepository;
+    private final AchievementRepository achievementRepository;
 
     public ProgressResponseDTO getProgress(String email) {
         User user = userRepository.findByEmail(email)
@@ -28,7 +32,7 @@ public class ProgressService {
         return ProgressResponseDTO.builder()
                 .goals(getGoals(user.getId()))
                 .monthlyStats(getMonthlyStats(user.getId()))
-                .personalRecords(getPersonalRecords())
+                .personalRecords(getPersonalRecords(user.getId()))
                 .achievements(getAchievements(user.getId()))
                 .build();
     }
@@ -69,61 +73,49 @@ public class ProgressService {
                 .build();
     }
 
-    private List<PersonalRecordDTO> getPersonalRecords() {
-        List<PersonalRecordDTO> records = new ArrayList<>();
-
-        records.add(PersonalRecordDTO.builder()
-                .exercise("Bench Press")
-                .value("225 lbs")
-                .date("5 days ago")
-                .icon("🏋️")
-                .build());
-
-        records.add(PersonalRecordDTO.builder()
-                .exercise("Squat")
-                .value("315 lbs")
-                .date("1 week ago")
-                .icon("🦵")
-                .build());
-
-        records.add(PersonalRecordDTO.builder()
-                .exercise("Deadlift")
-                .value("405 lbs")
-                .date("2 weeks ago")
-                .icon("💪")
-                .build());
-
-        records.add(PersonalRecordDTO.builder()
-                .exercise("5K Run")
-                .value("22:45")
-                .date("1 month ago")
-                .icon("🏃")
-                .build());
-
-        return records;
+    private List<PersonalRecordDTO> getPersonalRecords(Long userId) {
+        return personalRecordRepository.findByUserIdOrderByAchievedAtDesc(userId)
+                .stream()
+                .limit(5)
+                .map(this::convertToPersonalRecordDTO)
+                .collect(Collectors.toList());
     }
 
     private List<AchievementDTO> getAchievements(Long userId) {
-        List<AchievementDTO> achievements = new ArrayList<>();
+        return achievementRepository.findByUserIdOrderByUnlockedAtDesc(userId)
+                .stream()
+                .limit(5)
+                .map(this::convertToAchievementDTO)
+                .collect(Collectors.toList());
+    }
 
-        achievements.add(AchievementDTO.builder()
-                .name("100 Workouts")
-                .badge("🏆")
-                .unlockedDate("2 days ago")
-                .build());
+    private PersonalRecordDTO convertToPersonalRecordDTO(PersonalRecord record) {
+        return PersonalRecordDTO.builder()
+                .exercise(record.getExercise())
+                .value(record.getValue())
+                .date(formatTimeAgo(record.getAchievedAt()))
+                .icon(record.getIcon())
+                .build();
+    }
 
-        achievements.add(AchievementDTO.builder()
-                .name("30 Day Streak")
-                .badge("🔥")
-                .unlockedDate("1 week ago")
-                .build());
+    private AchievementDTO convertToAchievementDTO(Achievement achievement) {
+        return AchievementDTO.builder()
+                .name(achievement.getName())
+                .badge(achievement.getBadge())
+                .unlockedDate(formatTimeAgo(achievement.getUnlockedAt()))
+                .build();
+    }
 
-        achievements.add(AchievementDTO.builder()
-                .name("Strength Master")
-                .badge("💪")
-                .unlockedDate("2 weeks ago")
-                .build());
+    private String formatTimeAgo(LocalDateTime dateTime) {
+        long days = ChronoUnit.DAYS.between(dateTime, LocalDateTime.now());
 
-        return achievements;
+        if (days == 0) return "Today";
+        if (days == 1) return "1 day ago";
+        if (days < 7) return days + " days ago";
+        if (days < 14) return "1 week ago";
+        if (days < 30) return (days / 7) + " weeks ago";
+        if (days < 60) return "1 month ago";
+
+        return (days / 30) + " months ago";
     }
 }

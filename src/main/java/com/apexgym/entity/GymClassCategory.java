@@ -1,5 +1,8 @@
 package com.apexgym.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum GymClassCategory {
     HIIT("HIIT"),
     Yoga("Upper Body"),
@@ -14,7 +17,4 @@ public enum GymClassCategory {
         this.type = type;
     }
 
-    public String getType() {
-        return type;
-    }
 }
