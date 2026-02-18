@@ -1,28 +1,33 @@
 package com.apexgym.service;
 
 import com.apexgym.dto.FitnessClass;
+import com.apexgym.dto.RecommendationResponse;
+import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+@Slf4j
 public class RecommendationParser {
 
     public static List<FitnessClass> convertToJson(String ollamaRawText) throws Exception {
-        List<FitnessClass> classes = new ArrayList<>();
+        try {
+            ollamaRawText = ollamaRawText.replaceAll("`", "").replace("json", "");
+            System.out.println(ollamaRawText);
+            ObjectMapper objectMapper = new ObjectMapper();
 
-        // Regex to find: 1. **Title**: Description
-        // Group 1: Title, Group 2: Description
-        Pattern pattern = Pattern.compile("\\d+\\.\\s+\\*\\*(.*?)\\*\\*:\\s+(.*)");
-        Matcher matcher = pattern.matcher(ollamaRawText);
+            // 1. Map the JSON to the wrapper record
+            RecommendationResponse response = objectMapper.readValue(
+                    ollamaRawText,
+                    RecommendationResponse.class
+            );
 
-        while (matcher.find()) {
-            String title = matcher.group(1).trim();
-            String description = matcher.group(2).trim();
-            classes.add(new FitnessClass(title, description));
+            // 2. Extract the List
+            return response.recommendations();
+        } catch (Exception e) {
+            log.error("Exception occurred while parsing {}", e.getMessage());
+            return Collections.emptyList();
         }
-        return classes;
     }
 }

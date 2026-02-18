@@ -24,13 +24,23 @@ public class AiService {
         List<ClassAttendance> history = gymClassService.getAttendanceHistory(email);
 
         String prompt = """
-        Based on this user's data:
+        Act as a professional fitness coordinator. Based on the user data provided below, recommend 5 fitness classes.
+        
+        ### User Data:
         - Past classes: %s
         - Goals: %s
         - Fitness level: %s
         - Available times: %s
         
-        Recommend 5 classes with reasoning.
+        ### Instructions:
+        Return the recommendations strictly as a JSON object containing a list named "recommendations".\s
+        Each object in the list must follow this schema:
+        {
+          "name": "Class Name",
+          "reasoning": "A concise explanation of why this fits the user's goals, level, and schedule."
+        }
+        
+        Do not include any introductory text, markdown formatting (like ```json), or follow-up remarks. Return only the raw JSON.
         """.formatted(history, userProfile.getGoals(),
                 userProfile.getLevel(), userProfile.getAvailability());
 

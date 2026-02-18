@@ -2,6 +2,8 @@ package com.apexgym.entity;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 public enum GymClassCategory {
     HIIT("HIIT"),
@@ -15,6 +17,12 @@ public enum GymClassCategory {
 
     GymClassCategory(String type) {
         this.type = type;
+    }
+
+    public static GymClassCategory fromType(String type) {
+        return Arrays.stream(GymClassCategory.values())
+                .filter(category -> category.getType().equalsIgnoreCase(type))
+                .findFirst().orElse(GymClassCategory.Strength);
     }
 
 }
