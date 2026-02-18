@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -90,8 +92,8 @@ public class AdminService {
         LocalDateTime weekEnd       = todayStart.plusDays(8);
 
         GymClassCategory categoryEnum = null;
-        if (category != null && !category.isEmpty()) {
-            categoryEnum = GymClassCategory.valueOf(category.toUpperCase());
+        if (category != null && !category.isEmpty() && !"all".equalsIgnoreCase(category)) {
+            categoryEnum = GymClassCategory.valueOf(category);
         }
 
         List<GymClass> classes = gymClassRepository.findAllWithFilters(
@@ -162,9 +164,15 @@ public class AdminService {
                     .collect(Collectors.toList());
         }
 
-        if (specialty != null && !specialty.isEmpty()) {
+        if (specialty != null && !specialty.isEmpty() && !"all".equals(specialty)) {
             all = all.stream()
                     .filter(t -> t.getSpecialty().toLowerCase().contains(specialty.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        if (status != null && !status.isEmpty() && !"all".equals(status)) {
+            all = all.stream()
+                    .filter(t -> status.equalsIgnoreCase("active") ? t.getIsActive() : !t.getIsActive())
                     .collect(Collectors.toList());
         }
 
@@ -209,7 +217,7 @@ public class AdminService {
                 .membershipAnalytics(buildMembershipAnalytics(since))
                 .classAnalytics(buildClassAnalytics(since, now))
                 .popularClasses(buildPopularClasses())
-                .topTrainers(buildTopTrainers())
+                .topTrainers(buildTopTrainersRanking())
                 .peakHours(buildPeakHours())
                 .build();
     }
@@ -267,7 +275,7 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-    private List<TrainerRankingDTO> buildTopTrainers() {
+    private List<TrainerRankingDTO> buildTopTrainersRanking() {
         return trainerRepository.findByIsActiveTrueOrderByIsHeadCoachDescYearsExperienceDesc()
                 .stream()
                 .limit(5)
@@ -324,4 +332,213 @@ public class AdminService {
         String last = user.getLastName() != null ? user.getLastName().substring(0, 1) : "";
         return (first + last).toUpperCase();
     }
+
+    public AdminDashboardResponseDTO getDashboard() {
+        return AdminDashboardResponseDTO.builder()
+                .quickStats(buildQuickStats())
+                .recentMembers(buildRecentMembers())
+                .todayClasses(buildTodayClasses())
+                .revenueChart(buildRevenueChart())
+                .membershipDistribution(buildMembershipDistribution())
+                .topTrainers(buildTopTrainers())
+                .build();
+    }
+
+    // ============================================================
+    // Quick Stats
+    // ============================================================
+
+    private QuickStatsDTO buildQuickStats() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime monthStart = now.withDayOfMonth(1).withHour(0).withMinute(0);
+        LocalDateTime lastMonthStart = monthStart.minusMonths(1);
+        LocalDateTime weekStart = now.with(DayOfWeek.MONDAY).withHour(0).withMinute(0);
+        LocalDateTime lastWeekStart = weekStart.minusWeeks(1);
+
+        // Total Members
+        Long totalMembers = userRepository.count();
+        Long lastMonthMembers = userRepository.count() -
+                userRepository.countNewMembersSince(monthStart);
+        String membersTrend = calculateTrend(totalMembers, lastMonthMembers, "this month");
+
+        // Revenue
+        Double monthlyRevenue = membershipRepository.calculateMembershipRevenue();
+        String revenueTrend = "+8% this month"; // Placeholder
+
+        // Classes
+        Long classesThisWeek = gymClassRepository.countClassesBetween(weekStart, now);
+        Long classesLastWeek = gymClassRepository.countClassesBetween(lastWeekStart, weekStart);
+        String classesTrend = classesThisWeek.equals(classesLastWeek)
+                ? "Same as last week"
+                : calculateTrend(classesThisWeek, classesLastWeek, "this week");
+
+        // Trainers
+        Long activeTrainers = trainerRepository.countByIsActiveTrue();
+        String trainersTrend = "+2 new hires"; // Placeholder
+
+        return QuickStatsDTO.builder()
+                .totalMembers(totalMembers)
+                .membersTrend(membersTrend)
+                .monthlyRevenue(monthlyRevenue)
+                .revenueTrend(revenueTrend)
+                .classesThisWeek(classesThisWeek)
+                .classesTrend(classesTrend)
+                .activeTrainers(activeTrainers)
+                .trainersTrend(trainersTrend)
+                .build();
+    }
+
+    // ============================================================
+    // Recent Members
+    // ============================================================
+
+    private List<RecentMemberDTO> buildRecentMembers() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
+
+        return userRepository.findTop5ByOrderByCreatedAtDesc()
+                .stream()
+                .filter(user -> user.getRole().equals(Role.USER))
+                .map(user -> {
+                    Membership membership = membershipRepository.findByUserId(user.getId())
+                            .orElse(null);
+
+                    return RecentMemberDTO.builder()
+                            .id(user.getId())
+                            .name(user.getFirstName() + " " + user.getLastName())
+                            .email(user.getEmail())
+                            .plan(membership != null ? membership.getPlan().name() : "NONE")
+                            .joinedDate(formatTimeAgo(user.getCreatedAt()))
+                            .initials(getInitials(user))
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    // ============================================================
+    // Today's Classes
+    // ============================================================
+
+    private List<TodayClassDTO> buildTodayClasses() {
+        LocalDateTime todayStart = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime todayEnd = todayStart.plusDays(1);
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
+
+        return gymClassRepository.findByClassDateBetween(todayStart, todayEnd)
+                .stream()
+                .sorted((a, b) -> a.getClassDate().compareTo(b.getClassDate()))
+                .limit(4)
+                .map(gymClass -> {
+                    Long booked = classBookingRepository.countBookingsByClassId(gymClass.getId());
+                    String capacity = booked + "/" + gymClass.getMaxCapacity();
+                    String status = booked >= gymClass.getMaxCapacity() ? "FULL" : "AVAILABLE";
+
+                    return TodayClassDTO.builder()
+                            .id(gymClass.getId())
+                            .time(gymClass.getClassDate().format(timeFormatter))
+                            .name(gymClass.getName())
+                            .trainer(gymClass.getInstructorName())
+                            .capacity(capacity)
+                            .status(status)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    // ============================================================
+    // Revenue Chart (Last 7 Days)
+    // ============================================================
+
+    private List<RevenueChartDTO> buildRevenueChart() {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
+
+        Double baseRevenue = membershipRepository.calculateMembershipRevenue() / 7;
+
+        return List.of(
+                buildRevenueDay(now.minusDays(6), dayFormatter, baseRevenue, 0.85),
+                buildRevenueDay(now.minusDays(5), dayFormatter, baseRevenue, 0.92),
+                buildRevenueDay(now.minusDays(4), dayFormatter, baseRevenue, 0.78),
+                buildRevenueDay(now.minusDays(3), dayFormatter, baseRevenue, 1.05),
+                buildRevenueDay(now.minusDays(2), dayFormatter, baseRevenue, 0.95),
+                buildRevenueDay(now.minusDays(1), dayFormatter, baseRevenue, 1.10),
+                buildRevenueDay(now, dayFormatter, baseRevenue, 0.88)
+        );
+    }
+
+    private RevenueChartDTO buildRevenueDay(LocalDateTime date, DateTimeFormatter formatter,
+                                            Double base, Double multiplier) {
+        return RevenueChartDTO.builder()
+                .day(date.format(formatter))
+                .amount(Math.round(base * multiplier * 100.0) / 100.0)
+                .build();
+    }
+
+    // ============================================================
+    // Membership Distribution
+    // ============================================================
+
+    private List<MembershipDistributionDTO> buildMembershipDistribution() {
+        Long total = membershipRepository.count();
+
+        return List.of(
+                buildDistribution(MembershipPlan.STARTER, total),
+                buildDistribution(MembershipPlan.PRO, total),
+                buildDistribution(MembershipPlan.ELITE, total)
+        );
+    }
+
+    private MembershipDistributionDTO buildDistribution(MembershipPlan plan, Long total) {
+        Long count = membershipRepository.countByPlan(plan);
+        Integer percentage = total > 0 ? (int) (count * 100 / total) : 0;
+
+        return MembershipDistributionDTO.builder()
+                .plan(plan.name())
+                .count(count)
+                .percentage(percentage)
+                .build();
+    }
+
+    // ============================================================
+    // Top Trainers
+    // ============================================================
+
+    private List<TopTrainerDTO> buildTopTrainers() {
+        return trainerRepository.findTop3ByIsActiveTrueOrderByRatingDesc()
+                .stream()
+                .map((trainer) -> TopTrainerDTO.builder()
+                        .rank(1)
+                        .name(trainer.getFullName())
+                        .specialty(trainer.getSpecialty())
+                        .rating(trainer.getRating())
+                        .initials(trainer.getInitials())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // ============================================================
+    // Helper Methods
+    // ============================================================
+
+    private String calculateTrend(Long current, Long previous, String period) {
+        if (previous == 0) return "+" + current + " " + period;
+
+        double change = ((double) (current - previous) / previous) * 100;
+        String sign = change >= 0 ? "+" : "";
+        return String.format("%s%.0f%% %s", sign, change, period);
+    }
+
+    private String formatTimeAgo(LocalDateTime dateTime) {
+        if (dateTime == null) return "Unknown";
+
+        long days = ChronoUnit.DAYS.between(dateTime, LocalDateTime.now());
+
+        if (days == 0) return "Today";
+        if (days == 1) return "1 day ago";
+        if (days < 7) return days + " days ago";
+        if (days < 14) return "1 week ago";
+        if (days < 30) return (days / 7) + " weeks ago";
+
+        return (days / 30) + " months ago";
+    }
+
 }

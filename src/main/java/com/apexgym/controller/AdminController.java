@@ -96,6 +96,16 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard() {
+        try {
+            AdminDashboardResponseDTO response = adminService.getDashboard();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return error("Failed to fetch dashboard", e);
+        }
+    }
+
     private ResponseEntity<?> error(String message, Exception e) {
         Map<String, String> error = new HashMap<>();
         error.put("message", message);

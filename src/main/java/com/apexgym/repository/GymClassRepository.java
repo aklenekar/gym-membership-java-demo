@@ -42,13 +42,13 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long>, JpaSp
             """)*/
     @Query("""
                 SELECT c FROM GymClass c WHERE c.isActive = true 
-                AND (:category IS NULL OR c.category = :category)
+                AND (:category IS NULL OR c.category = :category)                          
                 AND (
-                    :day IS NULL
-                    OR (:day = 'TODAY' AND c.classDate >= :todayStart AND c.classDate < :tomorrowStart)
-                    OR (:day = 'TOMORROW' AND c.classDate >= :tomorrowStart AND c.classDate < :weekStart)
-                    OR (:day = 'WEEK' AND c.classDate >= :weekStart AND c.classDate < :weekEnd)
-                )
+                    :search IS NULL
+                    OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(c.instructorName) LIKE LOWER(CONCAT('%', :search, '%'))
+                )                            
+                ORDER BY c.classDate ASC
             """)
     List<GymClass> findAllWithFilters(
             @Param("category") GymClassCategory category,
@@ -69,4 +69,9 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long>, JpaSp
                 ORDER BY COUNT(b) DESC
             """)
     List<GymClass> findTopClassesByBookings(Pageable pageable);
+
+    List<GymClass> findByClassDateBetween(LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT c FROM GymClass c WHERE c.isActive = true ORDER BY c.classDate ASC")
+    List<GymClass> findAllActiveOrderByDate();
 }

@@ -1,6 +1,7 @@
 package com.apexgym.repository;
 
 import com.apexgym.entity.Membership;
+import com.apexgym.entity.MembershipPlan;
 import com.apexgym.entity.MembershipStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +35,6 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
                 ) FROM Membership m WHERE m.status = com.apexgym.entity.MembershipStatus.ACTIVE
             """)
     Double calculateMembershipRevenue();
+
+    Long countByPlan(MembershipPlan plan);
 }

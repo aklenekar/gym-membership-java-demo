@@ -10,4 +10,6 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
     List<Trainer> findByIsActiveTrueOrderByIsHeadCoachDescYearsExperienceDesc();
     List<Trainer> findByIsHeadCoachTrueAndIsActiveTrue();
     List<Trainer> findByIsHeadCoachFalseAndIsActiveTrue();
+    Long countByIsActiveTrue();
+    List<Trainer> findTop3ByIsActiveTrueOrderByRatingDesc();
 }

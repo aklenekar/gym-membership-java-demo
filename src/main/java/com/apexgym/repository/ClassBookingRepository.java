@@ -29,12 +29,12 @@ public interface ClassBookingRepository extends JpaRepository<ClassBooking, Long
     @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.status = 'BOOKED'")
     Long countTotalActiveBookings();
 
-    @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.gymClass.id = :classId AND b.status = 'BOOKED'")
-    Long countBookingsByClassId(@Param("classId") Long classId);
-
     @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.status = 'CANCELLED' AND b.bookedAt >= :since")
     Long countCancellationsSince(@Param("since") LocalDateTime since);
 
     @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.status = 'WAITLISTED'")
     Long countWaitlisted();
+
+    @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.gymClass.id = :classId AND b.status = com.apexgym.entity.BookingStatus.BOOKED")
+    Long countBookingsByClassId(@Param("classId") Long classId);
 }
