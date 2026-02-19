@@ -23,23 +23,6 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long>, JpaSp
     @Query("SELECT COUNT(c) FROM GymClass c WHERE c.classDate BETWEEN :start AND :end")
     Long countClassesBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    /*@Query("""
-                SELECT c FROM GymClass c
-                WHERE c.isActive = true
-                AND (:category IS NULL OR c.category = :category)
-                AND (
-                    :day IS NULL
-                    OR (:day = 'TODAY' AND c.classDate >= :todayStart AND c.classDate < :tomorrowStart)
-                    OR (:day = 'TOMORROW' AND c.classDate >= :tomorrowStart AND c.classDate < :weekStart)
-                    OR (:day = 'WEEK' AND c.classDate >= :weekStart AND c.classDate < :weekEnd)
-                )
-                AND (
-                    :search IS NULL
-                    OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))
-                    OR LOWER(c.instructorName) LIKE LOWER(CONCAT('%', :search, '%'))
-                )
-                ORDER BY c.classDate ASC
-            """)*/
     @Query("""
                 SELECT c FROM GymClass c WHERE c.isActive = true 
                 AND (:category IS NULL OR c.category = :category)                          
@@ -47,7 +30,13 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long>, JpaSp
                     :search IS NULL
                     OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))
                     OR LOWER(c.instructorName) LIKE LOWER(CONCAT('%', :search, '%'))
-                )                            
+                ) 
+                AND (
+                     :day is NULL
+                     OR (:day = 'TODAY' AND c.classDate >= :todayStart AND c.classDate < :tomorrowStart)
+                     OR (:day = 'TOMORROW' AND c.classDate >= :tomorrowStart AND c.classDate < :weekStart)
+                     OR (:day = 'WEEK' AND c.classDate >= :weekStart AND c.classDate < :weekEnd)
+                     )                           
                 ORDER BY c.classDate ASC
             """)
     List<GymClass> findAllWithFilters(

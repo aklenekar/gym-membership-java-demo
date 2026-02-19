@@ -186,7 +186,13 @@ public class ComprehensiveDataInitializer implements CommandLineRunner {
         for (User user : users) {
             // Past bookings (completed)
             int pastBookings = 5 + random.nextInt(15); // 5-20 past bookings
+            Set<Integer> classIds = new HashSet<>();
             for (int i = 0; i < pastBookings; i++) {
+                int classId = random.nextInt(classes.size());
+                if (classIds.contains(classId)) {
+                    classId = random.nextInt(classes.size());
+                }
+                classIds.add(classId);
                 GymClass gymClass = classes.get(random.nextInt(classes.size()));
                 LocalDateTime bookingDate = LocalDateTime.now().minusDays(random.nextInt(60));
 

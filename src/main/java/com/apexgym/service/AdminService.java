@@ -8,15 +8,15 @@ import com.apexgym.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -94,6 +94,10 @@ public class AdminService {
         GymClassCategory categoryEnum = null;
         if (category != null && !category.isEmpty() && !"all".equalsIgnoreCase(category)) {
             categoryEnum = GymClassCategory.valueOf(category);
+        }
+
+        if (day.isEmpty() || "all".equals(day)) {
+            day = null;
         }
 
         List<GymClass> classes = gymClassRepository.findAllWithFilters(
@@ -289,16 +293,31 @@ public class AdminService {
     }
 
     private List<RevenueStatDTO> buildRevenueChart(String period) {
-        String[] labels = period.equals("WEEK")
-                ? new String[]{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-                : new String[]{"W1", "W2", "W3", "W4"};
+        String[] labels = switch (period) {
+            case "WEEK" -> new String[]{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+            case "QUARTER" -> new String[]{"Q1", "Q2", "Q3", "Q4"};
+            case "YEAR" -> new String[]{"Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
+            default -> new String[]{"W1", "W2", "W3", "W4"};
+        };
 
         double baseRevenue = membershipRepository.calculateMembershipRevenue() / labels.length;
 
-        return java.util.Arrays.stream(labels)
-                .map(label -> RevenueStatDTO.builder()
-                        .label(label)
-                        .amount(Math.round(baseRevenue * (0.8 + Math.random() * 0.4) * 100.0) / 100.0)
+        // Generate amounts
+        Map<String, Double> labelAmounts = Arrays.stream(labels)
+                .collect(Collectors.toMap(
+                        label -> label,
+                        label -> Math.round(baseRevenue * (0.8 + Math.random() * 0.4) * 100.0) / 100.0
+                ));
+
+        // Find max
+        double maxAmount = labelAmounts.values().stream().max(Double::compare).orElse(1.0);
+
+        // Build result with height percentages
+        return labelAmounts.entrySet().stream()
+                .map(entry -> RevenueStatDTO.builder()
+                        .label(entry.getKey())
+                        .amount(entry.getValue())
+                        .heightPercent((int) ((entry.getValue() / maxAmount) * 100))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -338,7 +357,7 @@ public class AdminService {
                 .quickStats(buildQuickStats())
                 .recentMembers(buildRecentMembers())
                 .todayClasses(buildTodayClasses())
-                .revenueChart(buildRevenueChart())
+                .revenueChart(buildRevenueChart("WEEK"))
                 .membershipDistribution(buildMembershipDistribution())
                 .topTrainers(buildTopTrainers())
                 .build();

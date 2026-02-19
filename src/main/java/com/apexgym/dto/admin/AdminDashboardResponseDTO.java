@@ -18,7 +18,7 @@ public class AdminDashboardResponseDTO {
     private QuickStatsDTO quickStats;
     private List<RecentMemberDTO> recentMembers;
     private List<TodayClassDTO> todayClasses;
-    private List<RevenueChartDTO> revenueChart;
+    private List<RevenueStatDTO> revenueChart;
     private List<MembershipDistributionDTO> membershipDistribution;
     private List<TopTrainerDTO> topTrainers;
 }

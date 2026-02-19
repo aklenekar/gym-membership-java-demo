@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class RevenueStatDTO {
     private String label;          // "Mon", "Tue" etc.
     private Double amount;
+    private int heightPercent;
 }
