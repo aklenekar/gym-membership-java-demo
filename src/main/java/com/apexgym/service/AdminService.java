@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -207,6 +208,7 @@ public class AdminService {
                 .rating(trainer.getRating())
                 .isHeadCoach(trainer.getIsHeadCoach())
                 .email(trainer.getEmail())
+                .imageUrl("/" + trainer.getInitials() + ".jpg")
                 .build();
     }
 
@@ -285,13 +287,15 @@ public class AdminService {
     }
 
     private List<TrainerRankingDTO> buildTopTrainersRanking() {
+        AtomicInteger ranking = new AtomicInteger(0);
         return trainerRepository.findByIsActiveTrueOrderByIsHeadCoachDescYearsExperienceDesc()
                 .stream()
                 .limit(5)
                 .map((trainer) -> TrainerRankingDTO.builder()
-                        .rank(1)
+                        .rank(ranking.addAndGet(1))
                         .name(trainer.getFullName())
                         .rating(trainer.getRating())
+                        .imageUrl("/" + trainer.getInitials() + ".jpg")
                         .classCount(0L)
                         .build())
                 .collect(Collectors.toList());
@@ -535,6 +539,7 @@ public class AdminService {
                         .specialty(trainer.getSpecialty())
                         .rating(trainer.getRating())
                         .initials(trainer.getInitials())
+                        .imageUrl("/" + trainer.getInitials() + ".jpg")
                         .build())
                 .collect(Collectors.toList());
     }

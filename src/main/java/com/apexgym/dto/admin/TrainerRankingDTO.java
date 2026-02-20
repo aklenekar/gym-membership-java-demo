@@ -14,4 +14,5 @@ public class TrainerRankingDTO {
     private String name;
     private Double rating;
     private Long classCount;
+    private String imageUrl;
 }

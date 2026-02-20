@@ -15,4 +15,5 @@ public class TopTrainerDTO {
     private String specialty;
     private Double rating;
     private String initials;
+    private String imageUrl;
 }
