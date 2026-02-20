@@ -35,7 +35,7 @@ public class AdminService {
     // ============================================================
 
     public AdminMembersResponseDTO getMembers(String search, String planStr, String statusStr, int page) {
-        PageRequest pageRequest = PageRequest.of(page, 10);
+        PageRequest pageRequest = PageRequest.of(page, 100);
         MembershipPlan plan = null;
         if (planStr != null && !planStr.isEmpty() && !"All".equals(planStr)) {
             plan = MembershipPlan.valueOf(planStr.toUpperCase());
@@ -45,6 +45,7 @@ public class AdminService {
         if (statusStr != null && !statusStr.isEmpty() && !"All".equals(statusStr)) {
             status = MembershipStatus.valueOf(statusStr.toUpperCase());
         }
+
         Page<User> usersPage = userRepository.findAllWithFilters(plan, status, search, pageRequest);
 
         LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
@@ -131,6 +132,8 @@ public class AdminService {
 
     private AdminClassDTO convertToAdminClassDTO(GymClass gymClass) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, h:mm a");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         long booked = classBookingRepository.countBookingsByClassId(gymClass.getId());
 
         String status;
@@ -145,7 +148,9 @@ public class AdminService {
                 .category(gymClass.getCategory().name())
                 .instructor(gymClass.getInstructorName())
                 .location(gymClass.getLocation())
-                .startTime(gymClass.getClassDate().format(formatter))
+                .fullStartTime(gymClass.getClassDate().format(formatter))
+                .startDate(gymClass.getClassDate().format(dateFormatter))
+                .startTime(gymClass.getClassDate().format(timeFormatter))
                 .durationMinutes(gymClass.getDurationMinutes())
                 .capacity(gymClass.getMaxCapacity())
                 .bookedCount((int) booked)

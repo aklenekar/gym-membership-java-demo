@@ -24,7 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Admin Members - NEW queries to add
     @Query("""
                 SELECT u FROM User u
-                JOIN Membership m ON m.user.id = u.id
+                LEFT JOIN Membership m ON m.user.id = u.id
                 WHERE (:plan IS NULL OR m.plan = :plan)
                 AND (:status IS NULL OR m.status = :status)
                 AND (:search IS NULL OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))

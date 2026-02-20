@@ -184,16 +184,15 @@ public class ComprehensiveDataInitializer implements CommandLineRunner {
         int totalBookings = 0;
 
         for (User user : users) {
+            // Create a shuffled copy of classes for this user
+            List<GymClass> shuffledClasses = new ArrayList<>(classes);
+            Collections.shuffle(shuffledClasses);
+
             // Past bookings (completed)
-            int pastBookings = 5 + random.nextInt(15); // 5-20 past bookings
-            Set<Integer> classIds = new HashSet<>();
+            int pastBookings = Math.min(5 + random.nextInt(15), shuffledClasses.size());
+
             for (int i = 0; i < pastBookings; i++) {
-                int classId = random.nextInt(classes.size());
-                if (classIds.contains(classId)) {
-                    classId = random.nextInt(classes.size());
-                }
-                classIds.add(classId);
-                GymClass gymClass = classes.get(random.nextInt(classes.size()));
+                GymClass gymClass = shuffledClasses.get(i);
                 LocalDateTime bookingDate = LocalDateTime.now().minusDays(random.nextInt(60));
 
                 ClassBooking booking = ClassBooking.builder()
@@ -207,10 +206,12 @@ public class ComprehensiveDataInitializer implements CommandLineRunner {
                 totalBookings++;
             }
 
-            // Upcoming bookings
-            int upcomingBookings = 2 + random.nextInt(5); // 2-6 upcoming bookings
+            // Shuffle again for upcoming bookings
+            Collections.shuffle(shuffledClasses);
+            int upcomingBookings = Math.min(2 + random.nextInt(5), shuffledClasses.size());
+
             for (int i = 0; i < upcomingBookings; i++) {
-                GymClass gymClass = classes.get(random.nextInt(classes.size()));
+                GymClass gymClass = shuffledClasses.get(i);
                 LocalDateTime bookingDate = LocalDateTime.now().plusDays(random.nextInt(14));
 
                 ClassBooking booking = ClassBooking.builder()

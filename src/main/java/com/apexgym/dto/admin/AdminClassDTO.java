@@ -15,6 +15,8 @@ public class AdminClassDTO {
     private String category;
     private String instructor;
     private String location;
+    private String fullStartTime;
+    private String startDate;
     private String startTime;
     private Integer durationMinutes;
     private Integer capacity;
