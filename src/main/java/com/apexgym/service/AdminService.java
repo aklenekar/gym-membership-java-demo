@@ -531,10 +531,11 @@ public class AdminService {
     // ============================================================
 
     private List<TopTrainerDTO> buildTopTrainers() {
+        AtomicInteger ranking = new AtomicInteger(0);
         return trainerRepository.findTop3ByIsActiveTrueOrderByRatingDesc()
                 .stream()
                 .map((trainer) -> TopTrainerDTO.builder()
-                        .rank(1)
+                        .rank(ranking.addAndGet(1))
                         .name(trainer.getFullName())
                         .specialty(trainer.getSpecialty())
                         .rating(trainer.getRating())

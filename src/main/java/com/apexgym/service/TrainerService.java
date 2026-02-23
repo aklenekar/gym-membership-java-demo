@@ -48,7 +48,7 @@ public class TrainerService {
                 .clientsTrained(trainer.getClientsTrained())
                 .rating(trainer.getRating())
                 .isHeadCoach(trainer.getIsHeadCoach())
-                .imageUrl(trainer.getImageUrl())
+                .imageUrl("/" + trainer.getInitials() + ".jpg")
                 .email(trainer.getEmail())
                 .phone(trainer.getPhone())
                 .build();

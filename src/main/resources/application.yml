@@ -4,7 +4,7 @@ spring:
   
   # H2 Database Configuration (Development)
   datasource:
-    url: jdbc:h2:mem:apexgym
+    url: jdbc:h2:file:./data/apexgym;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
     password: 
