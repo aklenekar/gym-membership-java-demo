@@ -3,13 +3,16 @@ package com.apexgym.external;
 import com.apexgym.dto.ClassAttendance;
 import com.apexgym.dto.FitnessClass;
 import com.apexgym.dto.UserProfile;
+import com.apexgym.dto.ai.ClassRecommendationDTO;
 import com.apexgym.service.GymClassService;
 import com.apexgym.service.ProfileService;
 import com.apexgym.service.RecommendationParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,9 @@ public class AiService {
     private final OllamaService ollamaService;
     private final ProfileService profileService;
     private final GymClassService gymClassService;
+    private final ClassRecommendationService classRecommendationService;
+    private final WorkoutPlanService workoutPlanService;
+    private final NutritionAdviceService nutritionService;
 
     public List<FitnessClass> getRecommendations(String email) throws Exception {
         UserProfile userProfile = profileService.getCurrentUser(email);
@@ -45,5 +51,24 @@ public class AiService {
                 userProfile.getLevel(), userProfile.getAvailability());
 
         return RecommendationParser.convertToJson(ollamaService.getAiResponse(prompt));
+    }
+
+    public List<ClassRecommendationDTO> getRecommendedClasses(String email) {
+        UserProfile userProfile = profileService.getCurrentUser(email);
+        List<ClassAttendance> history = gymClassService.getAttendanceHistory(email);
+
+        return classRecommendationService.getRecommendations(userProfile.getGoals(), userProfile.getLevel()
+                , history.stream().map(ClassAttendance::getClassName).collect(Collectors.toList()), userProfile.getAvailability());
+    }
+
+    public String generateWorkoutPlan(String email) {
+        UserProfile userProfile = profileService.getCurrentUser(email);
+        List<String> availableEquipment = List.of("Drill", "Saw", "Hammer", "Level");
+        return workoutPlanService.generateWeeklyPlan(userProfile.getGoals(),3, 5, availableEquipment);
+    }
+
+    public String getNutritionPlan(String email) {
+        UserProfile userProfile = profileService.getCurrentUser(email);
+        return nutritionService.getNutritionPlan(userProfile.getGoals(), 80, 32, userProfile.getLevel(), Collections.emptyList());
     }
 }

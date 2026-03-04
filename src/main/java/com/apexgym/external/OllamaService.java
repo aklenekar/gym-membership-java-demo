@@ -1,6 +1,8 @@
 package com.apexgym.external;
 
+import com.apexgym.dto.OllamaOptions;
 import com.apexgym.dto.OllamaRequest;
+import com.apexgym.dto.OllamaRequestWithSystemAndUserPrompts;
 import com.apexgym.dto.OllamaResponse;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,20 @@ public class OllamaService {
      */
     public String getAiResponse(String prompt) {
         OllamaRequest request = new OllamaRequest("llama3.2:1b", prompt, false);
+
+        return Objects.requireNonNull(restClient.post()
+                        .uri("/generate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(request)
+                        .retrieve()
+                        .body(OllamaResponse.class))
+                .response();
+    }
+
+    public String getAiResponse(String systemPrompt, String userPrompt) {
+        OllamaOptions options = new OllamaOptions(500, 4096, 1);
+        OllamaRequestWithSystemAndUserPrompts request =
+                new OllamaRequestWithSystemAndUserPrompts("llama3.2:1b", systemPrompt, userPrompt, false, options);
 
         return Objects.requireNonNull(restClient.post()
                         .uri("/generate")

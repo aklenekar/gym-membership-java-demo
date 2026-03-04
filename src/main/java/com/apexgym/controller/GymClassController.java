@@ -2,6 +2,7 @@ package com.apexgym.controller;
 
 import com.apexgym.dto.FitnessClass;
 import com.apexgym.dto.GymClassDTO;
+import com.apexgym.dto.ai.ClassRecommendationDTO;
 import com.apexgym.external.AiService;
 import com.apexgym.service.GymClassService;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,20 @@ public class GymClassController {
         try {
             String email = commonHelper.getCurrentUserEmail();
             List<FitnessClass> response = aiService.getRecommendations(email);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Failed to load classes");
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @GetMapping("/recommendations/v2")
+    public ResponseEntity<?> getRecommendationsV2() {
+        try {
+            String email = commonHelper.getCurrentUserEmail();
+            List<ClassRecommendationDTO> response = aiService.getRecommendedClasses(email);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
