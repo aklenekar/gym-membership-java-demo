@@ -31,7 +31,7 @@ public class WorkoutPlanService {
                 - Estimated duration
                 - Rest periods
                 
-                Respond ONLY with a JSON array, no markdown, no extra text.
+                Respond ONLY with a JSON array, no markdown, no extra text, no comments.
                 """, daysPerWeek, goals, experienceYears, availableEquipment);
 
         String response = ollamaService.getAiResponse(prompt);
