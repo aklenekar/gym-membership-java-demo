@@ -2,8 +2,10 @@ package com.apexgym.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public record OllamaOptions(
-        @JsonProperty("num_predict") Integer numPredict,
-        @JsonProperty("num_ctx") Integer numCtx,
-        @JsonProperty("num_gpu") Integer numGpu
+        double temperature/*,
+        @JsonProperty("num_ctx") int numCtx,
+        @JsonProperty("num_predict") int num_predict*/
 ) {}

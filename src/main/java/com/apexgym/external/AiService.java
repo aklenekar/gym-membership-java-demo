@@ -3,12 +3,14 @@ package com.apexgym.external;
 import com.apexgym.dto.ClassAttendance;
 import com.apexgym.dto.FitnessClass;
 import com.apexgym.dto.UserProfile;
+import com.apexgym.dto.ai.ChatRequest;
 import com.apexgym.dto.ai.ClassRecommendationDTO;
 import com.apexgym.service.GymClassService;
 import com.apexgym.service.ProfileService;
 import com.apexgym.service.RecommendationParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,7 +52,7 @@ public class AiService {
         """.formatted(history, userProfile.getGoals(),
                 userProfile.getLevel(), userProfile.getAvailability());
 
-        return RecommendationParser.convertToJson(ollamaService.getAiResponse(prompt));
+        return RecommendationParser.convertToJson(ollamaService.getJsonResponse(prompt));
     }
 
     public List<ClassRecommendationDTO> getRecommendedClasses(String email) {
@@ -61,14 +63,19 @@ public class AiService {
                 , history.stream().map(ClassAttendance::getClassName).collect(Collectors.toList()), userProfile.getAvailability());
     }
 
-    public String generateWorkoutPlan(String email) {
+    public List<String> generateWorkoutPlan(String email) {
         UserProfile userProfile = profileService.getCurrentUser(email);
         List<String> availableEquipment = List.of("Drill", "Saw", "Hammer", "Level");
-        return workoutPlanService.generateWeeklyPlan(userProfile.getGoals(),3, 5, availableEquipment);
+        return workoutPlanService.getWeeklyWorkoutPlanParallel(3, userProfile.getGoals(),5, availableEquipment);
     }
 
     public String getNutritionPlan(String email) {
         UserProfile userProfile = profileService.getCurrentUser(email);
         return nutritionService.getNutritionPlan(userProfile.getGoals(), 80, 32, userProfile.getLevel(), Collections.emptyList());
+    }
+
+    public Flux<String> chatResponse(ChatRequest request) {
+        String systemPrompt = "You are a helpful fitness assistant for ApexGym.";
+        return ollamaService.streamAiResponse(systemPrompt, request.getMessage());
     }
 }

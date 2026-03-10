@@ -19,24 +19,18 @@ public class NutritionAdviceService {
             List<String> dietaryRestrictions
     ) {
         String prompt = String.format("""
-            Create a nutrition plan for:
-            
-            Goal: %s
-            Weight: %.1f kg
-            Age: %d
-            Activity Level: %s
-            Dietary Restrictions: %s
-            
-            Provide:
-            1. Daily calorie target
-            2. Macro split (protein/carbs/fats)
-            3. Meal timing recommendations
-            4. 3 sample meals
-            5. Supplement suggestions
-            
-            Format as JSON.
-            """, goal, weight, age, activityLevel, dietaryRestrictions);
+                Create a nutrition plan for:
+                Goal: %s | Weight: %.1f kg | Age: %d | Activity: %s | Restrictions: %s
+                
+                Response must follow this exact JSON structure:
+                {"dailyCalorieTarget":0,"macroSplit":{"protein":0,"carbs":0,"fats":0},"mealTimingRecommendations":{},"sampleMeals":[{"meal":"","food":""}],"supplementSuggestions":[]}
+                
+                Respond ONLY with raw JSON.
+                """, goal, weight, age, activityLevel, dietaryRestrictions);
 
-        return ollamaService.getAiResponse(prompt);
+        String response = ollamaService.getJsonResponse(prompt);
+
+        response = response.replaceAll("```json\\n?", "").replaceAll("```", "").trim();
+        return response;
     }
 }

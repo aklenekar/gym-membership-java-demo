@@ -1,6 +1,8 @@
 package com.apexgym.config;
 
 import com.apexgym.security.JwtAuthenticationFilter;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import reactor.core.publisher.Hooks;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,11 +44,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                         .requestMatchers(
                                 "/auth/**",
                                 "/h2-console/**",
                                 "/trainers/**",
-                                "/profile/**"// ← PUBLIC: No authentication required
+                                "/profile/**",// ← PUBLIC: No authentication required
+                                "/error"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -54,7 +59,13 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider(userDetailsService))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            System.out.println("403 Error on URL: " + request.getRequestURI());
+                            System.out.println("Reason: " + accessDeniedException.getMessage());
+                        })
+                );
 
         // Allow H2 console frames
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
@@ -97,5 +108,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @PostConstruct
+    public void setupSecurityContext() {
+        Hooks.enableAutomaticContextPropagation();
     }
 }

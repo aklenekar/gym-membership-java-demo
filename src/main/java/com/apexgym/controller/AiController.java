@@ -3,11 +3,13 @@ package com.apexgym.controller;
 import com.apexgym.dto.ai.*;
 import com.apexgym.external.AiService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -29,11 +31,11 @@ public class AiController {
     }
 
     @PostMapping("/workout/plan")
-    public ResponseEntity<String> generateWorkoutPlan(
+    public ResponseEntity<List<String>> generateWorkoutPlan(
             /*@RequestBody WorkoutPlanRequest request*/
     ) {
         String email = commonHelper.getCurrentUserEmail();
-        String plan = aiService.generateWorkoutPlan(email);
+        List<String> plan = aiService.generateWorkoutPlan(email);
         return ResponseEntity.ok(plan);
     }
 
@@ -46,9 +48,9 @@ public class AiController {
         return ResponseEntity.ok(plan);
     }
 
-    @PostMapping("/chat")
-    public ResponseEntity<String> chat(@RequestBody ChatRequest request) {
+    @PostMapping(value = "/chat", produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public Flux<String> chat(@RequestBody ChatRequest request) {
         // General fitness Q&A
-        return ResponseEntity.ok("AI response");
+        return aiService.chatResponse(request);
     }
 }
