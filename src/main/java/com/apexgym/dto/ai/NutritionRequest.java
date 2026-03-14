@@ -1,14 +1,13 @@
 package com.apexgym.dto.ai;
 
-import lombok.Data;
-
+import lombok.Builder;
 import java.util.List;
 
-@Data
-public class NutritionRequest {
-    private String goal;
-    private double weight;
-    private int age;
-    private String activityLevel;
-    private List<String> dietaryRestrictions;
-}
+@Builder
+public record NutritionRequest(
+    String goal,
+    double weight,
+    int age,
+    String activityLevel,
+    List<String> dietaryRestrictions
+) {}

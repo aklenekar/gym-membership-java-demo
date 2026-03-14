@@ -421,8 +421,6 @@ public class AdminService {
     // ============================================================
 
     private List<RecentMemberDTO> buildRecentMembers() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-
         return userRepository.findTop5ByOrderByCreatedAtDesc()
                 .stream()
                 .filter(user -> user.getRole().equals(Role.USER))

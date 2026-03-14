@@ -4,52 +4,43 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateProfileRequest {
+public record CreateProfileRequest(
     @NotBlank(message = "First name is required")
-    private String firstName;
+    String firstName,
 
     @NotBlank(message = "Last name is required")
-    private String lastName;
+    String lastName,
 
     @Email(message = "Email must be a valid e‑mail address")
     @NotBlank(message = "Email is required")
-    private String email;
+    String email,
 
     @NotBlank(message = "Password is required")
-    private String password;
+    String password,
 
     @Pattern(regexp = "^\\+?[0-9]{7,15}$",
             message = "Phone must be a valid international number")
-    private String phone;
+    String phone,
 
-    private String dateOfBirth;
-    private String gender;
+    String dateOfBirth,
+    String gender,
 
-    // ---- address -------------------------------------------------
-    private String street;
-    private String city;
-    private String state;
-    private String zipCode;
-    private String country;
+    String street,
+    String city,
+    String state,
+    String zipCode,
+    String country,
 
-    // ---- emergency contact ----------------------------------------
-    @JsonProperty("name")                 // maps JSON “name” → field emergencyContactName
-    private String emergencyContactName;
-    @JsonProperty("emergencyPhone")      // maps JSON “emergencyPhone”
-    private String emergencyContactPhone;
-    @JsonProperty("relationship")         // maps JSON “relationship”
-    private String emergencyContactRelationship;
+    @JsonProperty("name")
+    String emergencyContactName,
+    @JsonProperty("emergencyPhone")
+    String emergencyContactPhone,
+    @JsonProperty("relationship")
+    String emergencyContactRelationship,
 
-    // ---- health info ---------------------------------------------
-    private String medicalConditions;
-    private String fitnessGoals;
-}
+    String medicalConditions,
+    String fitnessGoals
+) {}

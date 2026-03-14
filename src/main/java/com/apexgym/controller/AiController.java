@@ -23,17 +23,22 @@ public class AiController {
 
     @PostMapping("/recommend/classes")
     public ResponseEntity<List<ClassRecommendationDTO>> recommendClasses(
-            /*@RequestBody ClassRecommendationRequest request*/
-    ) {
+            /*@RequestBody ClassRecommendationRequest request*/) {
         String email = commonHelper.getCurrentUserEmail();
         List<ClassRecommendationDTO> recommendations = aiService.getRecommendedClasses(email);
         return ResponseEntity.ok(recommendations);
     }
 
+    @PostMapping(value = "/v2/recommend/classes", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ClassRecommendationDTO> recommendClassesStream(
+            /*@RequestBody ClassRecommendationRequest request*/) {
+        String email = commonHelper.getCurrentUserEmail();
+        return aiService.getRecommendedClassesStreamResponse(email);
+    }
+
     @PostMapping("/workout/plan")
     public ResponseEntity<List<String>> generateWorkoutPlan(
-            /*@RequestBody WorkoutPlanRequest request*/
-    ) {
+            /*@RequestBody WorkoutPlanRequest request*/) {
         String email = commonHelper.getCurrentUserEmail();
         List<String> plan = aiService.generateWorkoutPlan(email);
         return ResponseEntity.ok(plan);
@@ -41,8 +46,7 @@ public class AiController {
 
     @PostMapping("/nutrition/plan")
     public ResponseEntity<String> getNutritionPlan(
-            /*@RequestBody NutritionRequest request*/
-    ) {
+            /*@RequestBody NutritionRequest request*/) {
         String email = commonHelper.getCurrentUserEmail();
         String plan = aiService.getNutritionPlan(email);
         return ResponseEntity.ok(plan);

@@ -1,9 +1,9 @@
 package com.apexgym.dto.ai;
 
-import lombok.Data;
+import lombok.Builder;
 
-@Data
-public class ChatRequest {
-    private String message;
-    private String conversationId;
-}
+@Builder
+public record ChatRequest(
+    String message,
+    String conversationId
+) {}

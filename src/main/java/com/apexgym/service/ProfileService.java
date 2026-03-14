@@ -54,20 +54,20 @@ public class ProfileService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (request.getPersonalInfo() != null) {
-            updatePersonalInfo(user, request.getPersonalInfo());
+        if (request.personalInfo() != null) {
+            updatePersonalInfo(user, request.personalInfo());
         }
 
-        if (request.getAddress() != null) {
-            updateAddress(user, request.getAddress());
+        if (request.address() != null) {
+            updateAddress(user, request.address());
         }
 
-        if (request.getEmergencyContact() != null) {
-            updateEmergencyContact(user, request.getEmergencyContact());
+        if (request.emergencyContact() != null) {
+            updateEmergencyContact(user, request.emergencyContact());
         }
 
-        if (request.getHealthInfo() != null) {
-            updateHealthInfo(user, request.getHealthInfo());
+        if (request.healthInfo() != null) {
+            updateHealthInfo(user, request.healthInfo());
         }
 
         userRepository.save(user);
@@ -137,29 +137,29 @@ public class ProfileService {
     }
 
     private void updatePersonalInfo(User user, PersonalInfoDTO dto) {
-        if (dto.getFirstName() != null) user.setFirstName(dto.getFirstName());
-        if (dto.getLastName() != null) user.setLastName(dto.getLastName());
-        if (dto.getPhone() != null) user.setPhone(dto.getPhone());
-        if (dto.getGender() != null) user.setGender(dto.getGender());
+        if (dto.firstName() != null) user.setFirstName(dto.firstName());
+        if (dto.lastName() != null) user.setLastName(dto.lastName());
+        if (dto.phone() != null) user.setPhone(dto.phone());
+        if (dto.gender() != null) user.setGender(dto.gender());
     }
 
     private void updateAddress(User user, AddressDTO dto) {
-        if (dto.getStreet() != null) user.setStreet(dto.getStreet());
-        if (dto.getCity() != null) user.setCity(dto.getCity());
-        if (dto.getState() != null) user.setState(dto.getState());
-        if (dto.getZipCode() != null) user.setZipCode(dto.getZipCode());
-        if (dto.getCountry() != null) user.setCountry(dto.getCountry());
+        if (dto.street() != null) user.setStreet(dto.street());
+        if (dto.city() != null) user.setCity(dto.city());
+        if (dto.state() != null) user.setState(dto.state());
+        if (dto.zipCode() != null) user.setZipCode(dto.zipCode());
+        if (dto.country() != null) user.setCountry(dto.country());
     }
 
     private void updateEmergencyContact(User user, EmergencyContactDTO dto) {
-        if (dto.getName() != null) user.setEmergencyContactName(dto.getName());
-        if (dto.getPhone() != null) user.setEmergencyContactPhone(dto.getPhone());
-        if (dto.getRelationship() != null) user.setEmergencyContactRelationship(dto.getRelationship());
+        if (dto.name() != null) user.setEmergencyContactName(dto.name());
+        if (dto.phone() != null) user.setEmergencyContactPhone(dto.phone());
+        if (dto.relationship() != null) user.setEmergencyContactRelationship(dto.relationship());
     }
 
     private void updateHealthInfo(User user, HealthInfoDTO dto) {
-        if (dto.getMedicalConditions() != null) user.setMedicalConditions(dto.getMedicalConditions());
-        if (dto.getFitnessGoals() != null) user.setFitnessGoals(dto.getFitnessGoals());
+        if (dto.medicalConditions() != null) user.setMedicalConditions(dto.medicalConditions());
+        if (dto.fitnessGoals() != null) user.setFitnessGoals(dto.fitnessGoals());
     }
 
     @Transactional
@@ -167,7 +167,7 @@ public class ProfileService {
         // -----------------------------------------------------------------
         // 1️⃣  Check for duplicate e‑mail
         // -----------------------------------------------------------------
-        userRepository.findByEmail(req.getEmail())
+        userRepository.findByEmail(req.email())
                 .ifPresent(u -> {
                     throw new IllegalArgumentException("E‑mail already in use");
                 });
@@ -177,30 +177,30 @@ public class ProfileService {
         // 2️⃣  Build the User entity + apply defaults
         // -----------------------------------------------------------------
         User.UserBuilder builder = User.builder()
-                .email(req.getEmail().trim())
-                .firstName(req.getFirstName())
-                .lastName(req.getLastName())
-                .phone(req.getPhone())
-                .gender(req.getGender())
-                .street(req.getStreet())
-                .city(req.getCity())
-                .state(req.getState())
-                .zipCode(req.getZipCode())
-                .country(req.getCountry())
-                .emergencyContactName(req.getEmergencyContactName())
-                .emergencyContactPhone(req.getEmergencyContactPhone())
-                .emergencyContactRelationship(req.getEmergencyContactRelationship())
-                .medicalConditions(req.getMedicalConditions())
-                .fitnessGoals(req.getFitnessGoals())
+                .email(req.email().trim())
+                .firstName(req.firstName())
+                .lastName(req.lastName())
+                .phone(req.phone())
+                .gender(req.gender())
+                .street(req.street())
+                .city(req.city())
+                .state(req.state())
+                .zipCode(req.zipCode())
+                .country(req.country())
+                .emergencyContactName(req.emergencyContactName())
+                .emergencyContactPhone(req.emergencyContactPhone())
+                .emergencyContactRelationship(req.emergencyContactRelationship())
+                .medicalConditions(req.medicalConditions())
+                .fitnessGoals(req.fitnessGoals())
                 .role(Role.USER)           // default role for sign‑up
                 .isActive(true);
 
         // -----------------------------------------------------------------
         // 3️⃣  Parse optional dateOfBirth (ISO‑8601) – ignore if malformed
         // -----------------------------------------------------------------
-        if (req.getDateOfBirth() != null && !req.getDateOfBirth().isBlank()) {
+        if (req.dateOfBirth() != null && !req.dateOfBirth().isBlank()) {
             try {
-                builder.dateOfBirth(LocalDate.parse(req.getDateOfBirth()));
+                builder.dateOfBirth(LocalDate.parse(req.dateOfBirth()));
             } catch (DateTimeParseException ex) {
                 throw new IllegalArgumentException("dateOfBirth must be ISO‑8601 (yyyy‑MM‑dd)");
             }
@@ -209,7 +209,7 @@ public class ProfileService {
         // -----------------------------------------------------------------
         // 4️⃣  Password handling
         // -----------------------------------------------------------------
-        String rawPassword = req.getPassword();
+        String rawPassword = req.password();
         builder.password(passwordEncoder.encode(rawPassword));
 
         // -----------------------------------------------------------------

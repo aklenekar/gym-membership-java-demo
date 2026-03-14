@@ -1,13 +1,12 @@
 package com.apexgym.dto.ai;
 
-import lombok.Data;
+import lombok.Builder;
 import java.util.List;
 
-@Data
-public class ClassRecommendationRequest {
-    private String goals;
-    private String fitnessLevel;
-    private List<String> pastClasses;
-    private String availability;
-}
-
+@Builder
+public record ClassRecommendationRequest(
+    String goals,
+    String fitnessLevel,
+    List<String> pastClasses,
+    String availability
+) {}

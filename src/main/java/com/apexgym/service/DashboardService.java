@@ -65,7 +65,10 @@ public class DashboardService {
 
         // Sum hours this month
         Long totalMinutes = workoutSessionRepository.sumDurationByUserIdAndStartTimeAfter(userId, startOfMonth);
-        double hours = totalMinutes / 60.0;
+        double hours = (totalMinutes != null ? totalMinutes : 0L) / 60.0;
+        
+        // Sum calories this month
+        Long caloriesBurned = workoutSessionRepository.sumCaloriesBurnedByUserIdAndStartTimeAfter(userId, startOfMonth);
 
         // Count completed classes this month
         Long classes = classBookingRepository.countCompletedClassesByUserIdAndDateAfter(userId, startOfMonth);
@@ -84,6 +87,7 @@ public class DashboardService {
                 .workouts(workouts)
                 .hours(Math.round(hours * 10.0) / 10.0) // Round to 1 decimal
                 .classes(classes)
+                .caloriesBurned(caloriesBurned)
                 .goalProgress(goalProgress)
                 .build();
     }
@@ -101,26 +105,24 @@ public class DashboardService {
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
 
-        List<UpcomingClassDTO> upcomingClassDTOS = upcomingClasses.stream()
+        return upcomingClasses.stream()
                 .limit(3)
-                .map(gymClass -> UpcomingClassDTO.builder()
+                .map(gymClass -> {
+                    boolean isBooked = bookingClassIds.containsKey(gymClass.getId());
+                    Long bookingId = isBooked ? bookingClassIds.get(gymClass.getId()).getId() : null;
+                    
+                    return UpcomingClassDTO.builder()
                         .id(gymClass.getId())
                         .name(gymClass.getName())
                         .instructor("with " + gymClass.getInstructorName())
                         .location(gymClass.getLocation())
                         .time(gymClass.getClassDate().format(timeFormatter))
                         .date(getDateLabel(gymClass.getClassDate()))
-                        .build())
+                        .isBooked(isBooked)
+                        .bookingId(bookingId)
+                        .build();
+                })
                 .toList();
-
-        upcomingClassDTOS.forEach(gymClassDTO -> {
-            if (bookingClassIds.containsKey(gymClassDTO.getId())) {
-                gymClassDTO.setIsBooked(true);
-                gymClassDTO.setBookingId(bookingClassIds.get(gymClassDTO.getId()).getId());
-            }
-        });
-
-        return upcomingClassDTOS;
     }
 
     private List<ActivityDTO> getRecentActivities(Long userId) {

@@ -1,17 +1,11 @@
 package com.apexgym.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ActivityDTO {
-    private Long id;
-    private String icon;
-    private String title;
-    private String time; // e.g., "2 hours ago"
-}
+public record ActivityDTO(
+    Long id,
+    String icon,
+    String title,
+    String time
+) {}

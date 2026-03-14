@@ -1,26 +1,20 @@
 package com.apexgym.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TrainerDTO {
-    private Long id;
-    private String fullName;
-    private String initials;
-    private String specialty;
-    private String bio;
-    private String certifications;
-    private Integer yearsExperience;
-    private Integer clientsTrained;
-    private Double rating;
-    private Boolean isHeadCoach;
-    private String imageUrl;
-    private String email;
-    private String phone;
-}
+public record TrainerDTO(
+    Long id,
+    String fullName,
+    String initials,
+    String specialty,
+    String bio,
+    String certifications,
+    Integer yearsExperience,
+    Integer clientsTrained,
+    Double rating,
+    Boolean isHeadCoach,
+    String imageUrl,
+    String email,
+    String phone
+) {}

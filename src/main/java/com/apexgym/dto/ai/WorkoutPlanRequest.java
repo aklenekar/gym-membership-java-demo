@@ -1,13 +1,12 @@
 package com.apexgym.dto.ai;
 
-import lombok.Data;
-
+import lombok.Builder;
 import java.util.List;
 
-@Data
-public class WorkoutPlanRequest {
-    private String goals;
-    private int daysPerWeek;
-    private int experienceYears;
-    private List<String> availableEquipment;
-}
+@Builder
+public record WorkoutPlanRequest(
+    String goals,
+    int daysPerWeek,
+    int experienceYears,
+    List<String> availableEquipment
+) {}

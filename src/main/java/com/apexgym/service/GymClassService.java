@@ -113,14 +113,26 @@ public class GymClassService {
         Map<Long, ClassBooking> bookingClassIds = userBookings.stream()
                 .collect(Collectors.toMap(cb -> cb.getGymClass().getId(), cb -> cb));
 
-        List<GymClassDTO> gymClassDTOS =  gymClasses.stream().map(this::toDTO).toList();
-        gymClassDTOS.forEach(gymClassDTO -> {
-            if (bookingClassIds.containsKey(gymClassDTO.getId())) {
-                gymClassDTO.setIsBooked(true);
-                gymClassDTO.setBookingId(bookingClassIds.get(gymClassDTO.getId()).getId());
+        return gymClasses.stream().map(entity -> {
+            GymClassDTO dto = toDTO(entity);
+            if (bookingClassIds.containsKey(dto.id())) {
+                return GymClassDTO.builder()
+                        .id(dto.id())
+                        .name(dto.name())
+                        .instructor(dto.instructor())
+                        .location(dto.location())
+                        .startTime(dto.startTime())
+                        .durationMin(dto.durationMin())
+                        .capacity(dto.capacity())
+                        .booked(dto.booked())
+                        .spotsInfo(dto.spotsInfo())
+                        .category(dto.category())
+                        .isBooked(true)
+                        .bookingId(bookingClassIds.get(dto.id()).getId())
+                        .build();
             }
-        });
-        return gymClassDTOS;
+            return dto;
+        }).toList();
     }
 
     public GymClassDTO getById(Long id) {
@@ -138,7 +150,7 @@ public class GymClassService {
         String spotsInfo = remaining + " spots left";
 
         return GymClassDTO.builder()
-                .id(entity.getId()) // Converting Long to Integer
+                .id(entity.getId())
                 .name(entity.getName())
                 .instructor(entity.getInstructorName())
                 .location(entity.getLocation())

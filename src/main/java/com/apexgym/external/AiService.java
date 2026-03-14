@@ -49,8 +49,8 @@ public class AiService {
         }
         
         Do not include any introductory text, markdown formatting (like ```json), or follow-up remarks. Return only the raw JSON.
-        """.formatted(history, userProfile.getGoals(),
-                userProfile.getLevel(), userProfile.getAvailability());
+        """.formatted(history, userProfile.goals(),
+                userProfile.level(), userProfile.availability());
 
         return RecommendationParser.convertToJson(ollamaService.getJsonResponse(prompt));
     }
@@ -59,23 +59,31 @@ public class AiService {
         UserProfile userProfile = profileService.getCurrentUser(email);
         List<ClassAttendance> history = gymClassService.getAttendanceHistory(email);
 
-        return classRecommendationService.getRecommendations(userProfile.getGoals(), userProfile.getLevel()
-                , history.stream().map(ClassAttendance::getClassName).collect(Collectors.toList()), userProfile.getAvailability());
+        return classRecommendationService.getRecommendations(userProfile.goals(), userProfile.level()
+                , history.stream().map(ClassAttendance::className).collect(Collectors.toList()), userProfile.availability());
+    }
+
+    public Flux<ClassRecommendationDTO> getRecommendedClassesStreamResponse(String email) {
+        UserProfile userProfile = profileService.getCurrentUser(email);
+        List<ClassAttendance> history = gymClassService.getAttendanceHistory(email);
+
+        return classRecommendationService.getRecommendationsStream(userProfile.goals(), userProfile.level()
+                , history.stream().map(ClassAttendance::className).collect(Collectors.toList()), userProfile.availability());
     }
 
     public List<String> generateWorkoutPlan(String email) {
         UserProfile userProfile = profileService.getCurrentUser(email);
         List<String> availableEquipment = List.of("Drill", "Saw", "Hammer", "Level");
-        return workoutPlanService.getWeeklyWorkoutPlanParallel(3, userProfile.getGoals(),5, availableEquipment);
+        return workoutPlanService.getWeeklyWorkoutPlanParallel(3, userProfile.goals(), 5, availableEquipment);
     }
 
     public String getNutritionPlan(String email) {
         UserProfile userProfile = profileService.getCurrentUser(email);
-        return nutritionService.getNutritionPlan(userProfile.getGoals(), 80, 32, userProfile.getLevel(), Collections.emptyList());
+        return nutritionService.getNutritionPlan(userProfile.goals(), 80, 32, userProfile.level(), Collections.emptyList());
     }
 
     public Flux<String> chatResponse(ChatRequest request) {
         String systemPrompt = "You are a helpful fitness assistant for ApexGym.";
-        return ollamaService.streamAiResponse(systemPrompt, request.getMessage());
+        return ollamaService.streamAiResponse(systemPrompt, request.message());
     }
 }

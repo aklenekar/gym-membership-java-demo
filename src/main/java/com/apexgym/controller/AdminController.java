@@ -4,13 +4,9 @@ import com.apexgym.dto.TrainersResponseDTO;
 import com.apexgym.dto.admin.*;
 import com.apexgym.service.AdminService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/admin")
@@ -26,18 +22,14 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/members")
-    public ResponseEntity<?> getMembers(
+    public ResponseEntity<AdminMembersResponseDTO> getMembers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String plan,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page
     ) {
-        try {
-            AdminMembersResponseDTO response = adminService.getMembers(search, plan, status, page);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return error("Failed to fetch members", e);
-        }
+        AdminMembersResponseDTO response = adminService.getMembers(search, plan, status, page);
+        return ResponseEntity.ok(response);
     }
 
     // ============================================================
@@ -46,17 +38,13 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/trainers")
-    public ResponseEntity<?> getTrainers(
+    public ResponseEntity<TrainersResponseDTO> getTrainers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String specialty,
             @RequestParam(required = false) String status
     ) {
-        try {
-            TrainersResponseDTO response = adminService.getAdminTrainers(search, specialty, status);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return error("Failed to fetch trainers", e);
-        }
+        TrainersResponseDTO response = adminService.getAdminTrainers(search, specialty, status);
+        return ResponseEntity.ok(response);
     }
 
     // ============================================================
@@ -65,17 +53,13 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/classes")
-    public ResponseEntity<?> getClasses(
+    public ResponseEntity<AdminClassesResponseDTO> getClasses(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String day
     ) {
-        try {
-            AdminClassesResponseDTO response = adminService.getClasses(search, category, day);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return error("Failed to fetch classes", e);
-        }
+        AdminClassesResponseDTO response = adminService.getClasses(search, category, day);
+        return ResponseEntity.ok(response);
     }
 
     // ============================================================
@@ -85,31 +69,16 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/reports")
-    public ResponseEntity<?> getReports(
+    public ResponseEntity<AdminReportsResponseDTO> getReports(
             @RequestParam(defaultValue = "MONTH") String period
     ) {
-        try {
-            AdminReportsResponseDTO response = adminService.getReports(period);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return error("Failed to fetch reports", e);
-        }
+        AdminReportsResponseDTO response = adminService.getReports(period);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/dashboard")
-    public ResponseEntity<?> getDashboard() {
-        try {
-            AdminDashboardResponseDTO response = adminService.getDashboard();
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return error("Failed to fetch dashboard", e);
-        }
-    }
-
-    private ResponseEntity<?> error(String message, Exception e) {
-        Map<String, String> error = new HashMap<>();
-        error.put("message", message);
-        error.put("error", e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    public ResponseEntity<AdminDashboardResponseDTO> getDashboard() {
+        AdminDashboardResponseDTO response = adminService.getDashboard();
+        return ResponseEntity.ok(response);
     }
 }

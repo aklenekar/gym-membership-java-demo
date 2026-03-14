@@ -4,13 +4,10 @@ import com.apexgym.dto.WorkoutDTO;
 import com.apexgym.dto.WorkoutRequest;
 import com.apexgym.dto.WorkoutsResponseDTO;
 import com.apexgym.service.WorkoutService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/workouts")
@@ -21,31 +18,17 @@ public class WorkoutController {
     private final WorkoutService workoutService;
 
     @GetMapping
-    public ResponseEntity<?> getWorkouts(@RequestParam(required = false) String workout,
-                                         @RequestParam(required = false) String day) {
-        try {
-            String email = commonHelper.getCurrentUserEmail();
-            WorkoutsResponseDTO workouts = workoutService.getWorkouts(email, workout, day);
-            return ResponseEntity.ok(workouts);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", "Failed to fetch workouts");
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+    public ResponseEntity<WorkoutsResponseDTO> getWorkouts(@RequestParam(required = false) String workout,
+                                                          @RequestParam(required = false) String day) {
+        String email = commonHelper.getCurrentUserEmail();
+        WorkoutsResponseDTO workouts = workoutService.getWorkouts(email, workout, day);
+        return ResponseEntity.ok(workouts);
     }
 
     @PostMapping
-    public ResponseEntity<?> submitWorkout(@RequestBody WorkoutRequest workoutRequest) {
-        try {
-            String email = commonHelper.getCurrentUserEmail();
-            WorkoutDTO workout = workoutService.submitWorkoutSession(workoutRequest, email);
-            return ResponseEntity.ok(workout);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", "Failed to submit workout");
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+    public ResponseEntity<WorkoutDTO> submitWorkout(@Valid @RequestBody WorkoutRequest workoutRequest) {
+        String email = commonHelper.getCurrentUserEmail();
+        WorkoutDTO workout = workoutService.submitWorkoutSession(workoutRequest, email);
+        return ResponseEntity.ok(workout);
     }
 }

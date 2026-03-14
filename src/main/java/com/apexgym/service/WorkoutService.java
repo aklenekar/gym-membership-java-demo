@@ -91,7 +91,7 @@ public class WorkoutService {
 
         Long workouts = workoutSessionRepository.countByUserIdAndStartTimeAfter(userId, startOfMonth);
         Long totalMinutes = workoutSessionRepository.sumDurationByUserIdAndStartTimeAfter(userId, startOfMonth);
-        double hours = totalMinutes / 60.0;
+        double hours = (totalMinutes != null ? totalMinutes : 0L) / 60.0;
         Long classes = classBookingRepository.countCompletedClassesByUserIdAndDateAfter(userId, startOfMonth);
         Long caloriesBurned = workoutSessionRepository.sumCaloriesBurnedByUserIdAndStartTimeAfter(userId, startOfMonth);
 
@@ -128,24 +128,24 @@ public class WorkoutService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         // 1. Parse the strings into Date and Time objects
-        LocalDate date = LocalDate.parse(workoutRequest.getStartDate());
-        LocalTime time = LocalTime.parse(workoutRequest.getStartTime());
+        LocalDate date = LocalDate.parse(workoutRequest.startDate());
+        LocalTime time = LocalTime.parse(workoutRequest.startTime());
 
         // 2. Combine into startTime (LocalDateTime)
         LocalDateTime startTime = LocalDateTime.of(date, time);
 
         // 3. Convert duration string to long and calculate endTime
-        long durationMinutes = Long.parseLong(workoutRequest.getDurationMinutes());
+        long durationMinutes = Long.parseLong(workoutRequest.durationMinutes());
         LocalDateTime endTime = startTime.plusMinutes(durationMinutes);
 
         WorkoutSession session = WorkoutSession.builder()
                 .user(user)
-                .workoutType(GymClassCategory.valueOf(workoutRequest.getCategory()).getType())
-                .category(GymClassCategory.valueOf(workoutRequest.getCategory()))
+                .workoutType(GymClassCategory.valueOf(workoutRequest.category()).getType())
+                .category(GymClassCategory.valueOf(workoutRequest.category()))
                 .startTime(startTime)
                 .endTime(endTime)
-                .caloriesBurned(workoutRequest.getCaloriesBurned())
-                .notes(workoutRequest.getNotes())
+                .caloriesBurned(workoutRequest.caloriesBurned())
+                .notes(workoutRequest.notes())
                 .build();
         workoutSessionRepository.save(session);
 
@@ -153,7 +153,7 @@ public class WorkoutService {
         Activity activity = Activity.builder()
                 .user(user)
                 .type(ActivityType.WORKOUT)
-                .title("Completed " + GymClassCategory.valueOf(workoutRequest.getCategory()).getType() + " workout")
+                .title("Completed " + GymClassCategory.valueOf(workoutRequest.category()).getType() + " workout")
                 .icon("💪")
                 .build();
         activityRepository.save(activity);

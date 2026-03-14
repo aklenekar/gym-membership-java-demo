@@ -1,16 +1,10 @@
 package com.apexgym.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.util.List;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class WorkoutsResponseDTO {
-    private StatsDTO monthlyStats;
-    private List<WorkoutDTO> workouts;
-}
+public record WorkoutsResponseDTO(
+    StatsDTO monthlyStats,
+    List<WorkoutDTO> workouts
+) {}
