@@ -1,6 +1,9 @@
 package com.apexgym.config;
 
 import com.apexgym.entity.*;
+import com.apexgym.entity.embeddable.Address;
+import com.apexgym.entity.embeddable.EmergencyContact;
+import com.apexgym.entity.embeddable.HealthInfo;
 import com.apexgym.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,16 +92,22 @@ public class ComprehensiveDataInitializer implements CommandLineRunner {
                     .phone(generatePhone())
                     .dateOfBirth(generateBirthDate())
                     .gender(random.nextBoolean() ? "Male" : "Female")
-                    .street(generateStreet())
-                    .city(generateCity())
-                    .state("California")
-                    .zipCode(String.format("900%02d", random.nextInt(100)))
-                    .country("United States")
-                    .emergencyContactName(data[0] + " Family")
-                    .emergencyContactPhone(generatePhone())
-                    .emergencyContactRelationship(i % 3 == 0 ? "Spouse" : i % 3 == 1 ? "Parent" : "Sibling")
-                    .medicalConditions(i % 4 == 0 ? "Mild asthma" : "None")
-                    .fitnessGoals(generateFitnessGoal())
+                    .address(Address.builder()
+                            .street(generateStreet())
+                            .city(generateCity())
+                            .state("California")
+                            .zipCode(String.format("900%02d", random.nextInt(100)))
+                            .country("United States")
+                            .build())
+                    .emergencyContact(EmergencyContact.builder()
+                            .name(data[0] + " Family")
+                            .phone(generatePhone())
+                            .relationship(i % 3 == 0 ? "Spouse" : i % 3 == 1 ? "Parent" : "Sibling")
+                            .build())
+                    .healthInfo(HealthInfo.builder()
+                            .medicalConditions(i % 4 == 0 ? "Mild asthma" : "None")
+                            .fitnessGoals(generateFitnessGoal())
+                            .build())
                     .createdAt(LocalDateTime.now().minusDays(random.nextInt(180)))
                     .isActive(Boolean.TRUE)
                     .build();

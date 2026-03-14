@@ -4,6 +4,7 @@ import com.apexgym.dto.TrainerDTO;
 import com.apexgym.dto.TrainersResponseDTO;
 import com.apexgym.dto.admin.*;
 import com.apexgym.entity.*;
+import com.apexgym.mapper.AdminMapper;
 import com.apexgym.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,9 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +30,7 @@ public class AdminService {
     private final GymClassRepository gymClassRepository;
     private final ClassBookingRepository classBookingRepository;
     private final TrainerRepository trainerRepository;
+    private final AdminMapper adminMapper;
 
     // ============================================================
     // MEMBERS
@@ -53,7 +54,10 @@ public class AdminService {
 
         return AdminMembersResponseDTO.builder()
                 .members(usersPage.getContent().stream()
-                        .map(this::convertToAdminMemberDTO)
+                        .map(user -> {
+                            Membership membership = membershipRepository.findByUserId(user.getId()).orElse(null);
+                            return adminMapper.toAdminMemberDTO(user, membership);
+                        })
                         .collect(Collectors.toList()))
                 .totalMembers(usersPage.getTotalElements())
                 .activeMembers(membershipRepository.countByStatus(MembershipStatus.ACTIVE))
@@ -61,24 +65,6 @@ public class AdminService {
                 .newThisWeek(userRepository.countNewMembersSince(weekAgo))
                 .currentPage(page)
                 .totalPages(usersPage.getTotalPages())
-                .build();
-    }
-
-    private AdminMemberDTO convertToAdminMemberDTO(User user) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-        Membership membership = membershipRepository.findByUserId(user.getId()).orElse(null);
-
-        return AdminMemberDTO.builder()
-                .id(user.getId())
-                .memberId("#M-" + String.format("%04d", user.getId()))
-                .fullName(user.getFirstName() + " " + user.getLastName())
-                .email(user.getEmail())
-                .plan(membership != null ? membership.getPlan().name() : "NONE")
-                .status(membership != null ? membership.getStatus().name() : "INACTIVE")
-                .joinDate(user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "N/A")
-                .expiryDate(membership != null && membership.getNextBillingDate() != null
-                        ? membership.getNextBillingDate().format(formatter) : "N/A")
-                .initials(getInitials(user))
                 .build();
     }
 
@@ -98,7 +84,7 @@ public class AdminService {
             categoryEnum = GymClassCategory.valueOf(category);
         }
 
-        if (day.isEmpty() || "all".equals(day)) {
+        if (day == null || day.isEmpty() || "all".equals(day)) {
             day = null;
         }
 
@@ -107,9 +93,9 @@ public class AdminService {
                 todayStart, tomorrowStart, weekStart, weekEnd
         );
 
-        Long totalBookings = classBookingRepository.countTotalActiveBookings();
-        Long classesThisWeek = gymClassRepository.countClassesBetween(weekStart, weekEnd);
-        Long classesToday = gymClassRepository.countClassesBetween(
+        long totalBookings = classBookingRepository.countTotalActiveBookings();
+        long classesThisWeek = gymClassRepository.countClassesBetween(weekStart, weekEnd);
+        long classesToday = gymClassRepository.countClassesBetween(
                 now.withHour(0).withMinute(0),
                 now.withHour(23).withMinute(59)
         );
@@ -120,10 +106,15 @@ public class AdminService {
                     return c.getMaxCapacity() > 0 ? (booked * 100.0 / c.getMaxCapacity()) : 0;
                 })
                 .average()
-                .orElse(0);
+                .orElse(0.0);
 
         return AdminClassesResponseDTO.builder()
-                .classes(classes.stream().map(this::convertToAdminClassDTO).collect(Collectors.toList()))
+                .classes(classes.stream()
+                        .map(gymClass -> {
+                            long booked = classBookingRepository.countBookingsByClassId(gymClass.getId());
+                            return adminMapper.toAdminClassDTO(gymClass, booked, calculateClassStatus(gymClass, booked));
+                        })
+                        .collect(Collectors.toList()))
                 .classesThisWeek(classesThisWeek)
                 .totalBookings(totalBookings)
                 .avgCapacityPercent(avgCapacity)
@@ -131,32 +122,11 @@ public class AdminService {
                 .build();
     }
 
-    private AdminClassDTO convertToAdminClassDTO(GymClass gymClass) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, h:mm a");
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        long booked = classBookingRepository.countBookingsByClassId(gymClass.getId());
-
-        String status;
+    private String calculateClassStatus(GymClass gymClass, long booked) {
         double fillRate = gymClass.getMaxCapacity() > 0 ? (double) booked / gymClass.getMaxCapacity() : 0;
-        if (fillRate >= 1.0) status = "FULL";
-        else if (fillRate >= 0.8) status = "ALMOST_FULL";
-        else status = "AVAILABLE";
-
-        return AdminClassDTO.builder()
-                .id(gymClass.getId())
-                .name(gymClass.getName())
-                .category(gymClass.getCategory().name())
-                .instructor(gymClass.getInstructorName())
-                .location(gymClass.getLocation())
-                .fullStartTime(gymClass.getClassDate().format(formatter))
-                .startDate(gymClass.getClassDate().format(dateFormatter))
-                .startTime(gymClass.getClassDate().format(timeFormatter))
-                .durationMinutes(gymClass.getDurationMinutes())
-                .capacity(gymClass.getMaxCapacity())
-                .bookedCount((int) booked)
-                .status(status)
-                .build();
+        if (fillRate >= 1.0) return "FULL";
+        else if (fillRate >= 0.8) return "ALMOST_FULL";
+        else return "AVAILABLE";
     }
 
     // ============================================================
@@ -182,33 +152,16 @@ public class AdminService {
 
         if (status != null && !status.isEmpty() && !"all".equals(status)) {
             all = all.stream()
-                    .filter(t -> status.equalsIgnoreCase("active") ? t.getIsActive() : !t.getIsActive())
+                    .filter(t -> status.equalsIgnoreCase("active") == t.getIsActive())
                     .collect(Collectors.toList());
         }
 
         List<TrainerDTO> trainers = all.stream()
-                .map(this::convertToTrainerDTO)
+                .map(adminMapper::toTrainerDTO)
                 .collect(Collectors.toList());
 
         return TrainersResponseDTO.builder()
                 .trainers(trainers)
-                .build();
-    }
-
-    private TrainerDTO convertToTrainerDTO(Trainer trainer) {
-        return TrainerDTO.builder()
-                .id(trainer.getId())
-                .fullName(trainer.getFullName())
-                .initials(trainer.getInitials())
-                .specialty(trainer.getSpecialty())
-                .bio(trainer.getBio())
-                .certifications(trainer.getCertifications())
-                .yearsExperience(trainer.getYearsExperience())
-                .clientsTrained(trainer.getClientsTrained())
-                .rating(trainer.getRating())
-                .isHeadCoach(trainer.getIsHeadCoach())
-                .email(trainer.getEmail())
-                .imageUrl("/" + trainer.getInitials() + ".jpg")
                 .build();
     }
 
@@ -234,11 +187,11 @@ public class AdminService {
     }
 
     private MembershipAnalyticsDTO buildMembershipAnalytics(LocalDateTime since) {
-        Long total = membershipRepository.count();
-        Long active = membershipRepository.countByStatus(MembershipStatus.ACTIVE);
-        Long renewals = membershipRepository.countRenewalsSince(since.toLocalDate());
-        Long cancellations = membershipRepository.countCancellationsSince(since);
-        Double retentionRate = total > 0 ? (active * 100.0 / total) : 0;
+        long total = membershipRepository.count();
+        long active = membershipRepository.countByStatus(MembershipStatus.ACTIVE);
+        long renewals = membershipRepository.countRenewalsSince(since.toLocalDate());
+        long cancellations = membershipRepository.countCancellationsSince(since);
+        double retentionRate = total > 0 ? (active * 100.0 / total) : 0.0;
 
         return MembershipAnalyticsDTO.builder()
                 .totalMembers(total)
@@ -250,10 +203,10 @@ public class AdminService {
     }
 
     private ClassAnalyticsDTO buildClassAnalytics(LocalDateTime since, LocalDateTime now) {
-        Long totalClasses = gymClassRepository.countClassesBetween(since, now);
-        Long totalBookings = classBookingRepository.countTotalActiveBookings();
-        Long cancellations = classBookingRepository.countCancellationsSince(since);
-        Long waitlisted = classBookingRepository.countWaitlisted();
+        long totalClasses = gymClassRepository.countClassesBetween(since, now);
+        long totalBookings = classBookingRepository.countTotalActiveBookings();
+        long cancellations = classBookingRepository.countCancellationsSince(since);
+        long waitlisted = classBookingRepository.countWaitlisted();
 
         int cancellationRate = totalBookings > 0
                 ? (int) (cancellations * 100 / totalBookings) : 0;
@@ -270,7 +223,7 @@ public class AdminService {
     private List<ClassRankingDTO> buildPopularClasses() {
         List<GymClass> topClasses = gymClassRepository.findTopClassesByBookings(PageRequest.of(0, 5));
         long maxBookings = topClasses.isEmpty() ? 1 :
-                classBookingRepository.countBookingsByClassId(topClasses.get(0).getId());
+                classBookingRepository.countBookingsByClassId(topClasses.getFirst().getId());
 
         return IntStream.range(0, topClasses.size())
                 .mapToObj(i -> {
@@ -311,17 +264,14 @@ public class AdminService {
 
         double baseRevenue = membershipRepository.calculateMembershipRevenue() / labels.length;
 
-        // Generate amounts
         Map<String, Double> labelAmounts = Arrays.stream(labels)
                 .collect(Collectors.toMap(
                         label -> label,
                         label -> Math.round(baseRevenue * (0.8 + Math.random() * 0.4) * 100.0) / 100.0
                 ));
 
-        // Find max
         double maxAmount = labelAmounts.values().stream().max(Double::compare).orElse(1.0);
 
-        // Build result with height percentages
         return labelAmounts.entrySet().stream()
                 .map(entry -> RevenueStatDTO.builder()
                         .label(entry.getKey())
@@ -355,12 +305,6 @@ public class AdminService {
         };
     }
 
-    private String getInitials(User user) {
-        String first = user.getFirstName() != null ? user.getFirstName().substring(0, 1) : "";
-        String last = user.getLastName() != null ? user.getLastName().substring(0, 1) : "";
-        return (first + last).toUpperCase();
-    }
-
     public AdminDashboardResponseDTO getDashboard() {
         return AdminDashboardResponseDTO.builder()
                 .quickStats(buildQuickStats())
@@ -372,37 +316,27 @@ public class AdminService {
                 .build();
     }
 
-    // ============================================================
-    // Quick Stats
-    // ============================================================
-
     private QuickStatsDTO buildQuickStats() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime monthStart = now.withDayOfMonth(1).withHour(0).withMinute(0);
-        LocalDateTime lastMonthStart = monthStart.minusMonths(1);
-        LocalDateTime weekStart = now.with(DayOfWeek.MONDAY).withHour(0).withMinute(0);
-        LocalDateTime lastWeekStart = weekStart.minusWeeks(1);
-
-        // Total Members
-        Long totalMembers = userRepository.count();
-        Long lastMonthMembers = userRepository.count() -
+        long totalMembers = userRepository.count();
+        long lastMonthMembers = userRepository.count() -
                 userRepository.countNewMembersSince(monthStart);
         String membersTrend = calculateTrend(totalMembers, lastMonthMembers, "this month");
 
-        // Revenue
         Double monthlyRevenue = membershipRepository.calculateMembershipRevenue();
-        String revenueTrend = "+8% this month"; // Placeholder
+        String revenueTrend = "+8% this month";
 
-        // Classes
-        Long classesThisWeek = gymClassRepository.countClassesBetween(weekStart, now);
-        Long classesLastWeek = gymClassRepository.countClassesBetween(lastWeekStart, weekStart);
-        String classesTrend = classesThisWeek.equals(classesLastWeek)
+        LocalDateTime weekStart = now.with(DayOfWeek.MONDAY).withHour(0).withMinute(0);
+        LocalDateTime lastWeekStart = weekStart.minusWeeks(1);
+        long classesThisWeek = gymClassRepository.countClassesBetween(weekStart, now);
+        long classesLastWeek = gymClassRepository.countClassesBetween(lastWeekStart, weekStart);
+        String classesTrend = classesThisWeek == classesLastWeek
                 ? "Same as last week"
                 : calculateTrend(classesThisWeek, classesLastWeek, "this week");
 
-        // Trainers
-        Long activeTrainers = trainerRepository.countByIsActiveTrue();
-        String trainersTrend = "+2 new hires"; // Placeholder
+        long activeTrainers = trainerRepository.countByIsActiveTrue();
+        String trainersTrend = "+2 new hires";
 
         return QuickStatsDTO.builder()
                 .totalMembers(totalMembers)
@@ -416,10 +350,6 @@ public class AdminService {
                 .build();
     }
 
-    // ============================================================
-    // Recent Members
-    // ============================================================
-
     private List<RecentMemberDTO> buildRecentMembers() {
         return userRepository.findTop5ByOrderByCreatedAtDesc()
                 .stream()
@@ -427,84 +357,28 @@ public class AdminService {
                 .map(user -> {
                     Membership membership = membershipRepository.findByUserId(user.getId())
                             .orElse(null);
-
-                    return RecentMemberDTO.builder()
-                            .id(user.getId())
-                            .name(user.getFirstName() + " " + user.getLastName())
-                            .email(user.getEmail())
-                            .plan(membership != null ? membership.getPlan().name() : "NONE")
-                            .joinedDate(formatTimeAgo(user.getCreatedAt()))
-                            .initials(getInitials(user))
-                            .build();
+                    return adminMapper.toRecentMemberDTO(user, membership);
                 })
                 .collect(Collectors.toList());
     }
-
-    // ============================================================
-    // Today's Classes
-    // ============================================================
 
     private List<TodayClassDTO> buildTodayClasses() {
         LocalDateTime todayStart = LocalDateTime.now().toLocalDate().atStartOfDay();
         LocalDateTime todayEnd = todayStart.plusDays(1);
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
 
         return gymClassRepository.findByClassDateBetween(todayStart, todayEnd)
                 .stream()
-                .sorted((a, b) -> a.getClassDate().compareTo(b.getClassDate()))
+                .sorted(Comparator.comparing(GymClass::getClassDate))
                 .limit(4)
                 .map(gymClass -> {
-                    Long booked = classBookingRepository.countBookingsByClassId(gymClass.getId());
-                    String capacity = booked + "/" + gymClass.getMaxCapacity();
-                    String status = booked >= gymClass.getMaxCapacity() ? "FULL" : "AVAILABLE";
-
-                    return TodayClassDTO.builder()
-                            .id(gymClass.getId())
-                            .time(gymClass.getClassDate().format(timeFormatter))
-                            .name(gymClass.getName())
-                            .trainer(gymClass.getInstructorName())
-                            .capacity(capacity)
-                            .status(status)
-                            .build();
+                    long booked = classBookingRepository.countBookingsByClassId(gymClass.getId());
+                    return adminMapper.toTodayClassDTO(gymClass, booked, calculateClassStatus(gymClass, booked));
                 })
                 .collect(Collectors.toList());
     }
 
-    // ============================================================
-    // Revenue Chart (Last 7 Days)
-    // ============================================================
-
-    private List<RevenueChartDTO> buildRevenueChart() {
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
-
-        Double baseRevenue = membershipRepository.calculateMembershipRevenue() / 7;
-
-        return List.of(
-                buildRevenueDay(now.minusDays(6), dayFormatter, baseRevenue, 0.85),
-                buildRevenueDay(now.minusDays(5), dayFormatter, baseRevenue, 0.92),
-                buildRevenueDay(now.minusDays(4), dayFormatter, baseRevenue, 0.78),
-                buildRevenueDay(now.minusDays(3), dayFormatter, baseRevenue, 1.05),
-                buildRevenueDay(now.minusDays(2), dayFormatter, baseRevenue, 0.95),
-                buildRevenueDay(now.minusDays(1), dayFormatter, baseRevenue, 1.10),
-                buildRevenueDay(now, dayFormatter, baseRevenue, 0.88)
-        );
-    }
-
-    private RevenueChartDTO buildRevenueDay(LocalDateTime date, DateTimeFormatter formatter,
-                                            Double base, Double multiplier) {
-        return RevenueChartDTO.builder()
-                .day(date.format(formatter))
-                .amount(Math.round(base * multiplier * 100.0) / 100.0)
-                .build();
-    }
-
-    // ============================================================
-    // Membership Distribution
-    // ============================================================
-
     private List<MembershipDistributionDTO> buildMembershipDistribution() {
-        Long total = membershipRepository.count();
+        long total = membershipRepository.count();
 
         return List.of(
                 buildDistribution(MembershipPlan.STARTER, total),
@@ -513,9 +387,9 @@ public class AdminService {
         );
     }
 
-    private MembershipDistributionDTO buildDistribution(MembershipPlan plan, Long total) {
-        Long count = membershipRepository.countByPlan(plan);
-        Integer percentage = total > 0 ? (int) (count * 100 / total) : 0;
+    private MembershipDistributionDTO buildDistribution(MembershipPlan plan, long total) {
+        long count = membershipRepository.countByPlan(plan);
+        int percentage = total > 0 ? (int) (count * 100 / total) : 0;
 
         return MembershipDistributionDTO.builder()
                 .plan(plan.name())
@@ -524,49 +398,28 @@ public class AdminService {
                 .build();
     }
 
-    // ============================================================
-    // Top Trainers
-    // ============================================================
-
     private List<TopTrainerDTO> buildTopTrainers() {
         AtomicInteger ranking = new AtomicInteger(0);
         return trainerRepository.findTop3ByIsActiveTrueOrderByRatingDesc()
                 .stream()
-                .map((trainer) -> TopTrainerDTO.builder()
-                        .rank(ranking.addAndGet(1))
-                        .name(trainer.getFullName())
-                        .specialty(trainer.getSpecialty())
-                        .rating(trainer.getRating())
-                        .initials(trainer.getInitials())
-                        .imageUrl("/" + trainer.getInitials() + ".jpg")
-                        .build())
+                .map((trainer) -> {
+                    TopTrainerDTO dto = adminMapper.toTopTrainerDTO(trainer);
+                    return TopTrainerDTO.builder()
+                            .rank(ranking.addAndGet(1))
+                            .name(dto.name())
+                            .specialty(dto.specialty())
+                            .rating(dto.rating())
+                            .initials(dto.initials())
+                            .imageUrl(dto.imageUrl())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
-    // ============================================================
-    // Helper Methods
-    // ============================================================
-
-    private String calculateTrend(Long current, Long previous, String period) {
+    private String calculateTrend(long current, long previous, String period) {
         if (previous == 0) return "+" + current + " " + period;
-
         double change = ((double) (current - previous) / previous) * 100;
         String sign = change >= 0 ? "+" : "";
         return String.format("%s%.0f%% %s", sign, change, period);
     }
-
-    private String formatTimeAgo(LocalDateTime dateTime) {
-        if (dateTime == null) return "Unknown";
-
-        long days = ChronoUnit.DAYS.between(dateTime, LocalDateTime.now());
-
-        if (days == 0) return "Today";
-        if (days == 1) return "1 day ago";
-        if (days < 7) return days + " days ago";
-        if (days < 14) return "1 week ago";
-        if (days < 30) return (days / 7) + " weeks ago";
-
-        return (days / 30) + " months ago";
-    }
-
 }

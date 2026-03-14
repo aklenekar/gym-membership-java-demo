@@ -3,7 +3,7 @@ package com.apexgym.controller;
 import com.apexgym.dto.FitnessClass;
 import com.apexgym.dto.GymClassDTO;
 import com.apexgym.dto.ai.ClassRecommendationDTO;
-import com.apexgym.external.AiService;
+import com.apexgym.service.AiService;
 import com.apexgym.service.GymClassService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

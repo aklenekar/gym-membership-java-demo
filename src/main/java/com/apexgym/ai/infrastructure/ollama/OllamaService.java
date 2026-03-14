@@ -1,4 +1,4 @@
-package com.apexgym.external;
+package com.apexgym.ai.infrastructure.ollama;
 
 import com.apexgym.dto.OllamaOptions;
 import com.apexgym.dto.OllamaRequest;
@@ -13,9 +13,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 @Service
@@ -24,15 +21,13 @@ public class OllamaService {
 
     public static final String OLLAMA_URL = "http://127.0.0.1:11434/api";
     private final RestClient restClient;
-    private final ObjectMapper objectMapper; // To parse JSON chunks
+    private final ObjectMapper objectMapper;
     private static final String MODEL = "llama3.2:1b";
     private final WebClient webClient;
 
     public OllamaService(ObjectMapper objectMapper) {
-        // Explicitly use the JDK-based request factory
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
-        requestFactory.setReadTimeout(Duration.ofMinutes(2)); // Ollama can be slow
-        // Initialize RestClient with the Ollama base URL
+        requestFactory.setReadTimeout(Duration.ofMinutes(2));
         this.restClient = RestClient.builder()
                 .requestFactory(requestFactory)
                 .baseUrl(OLLAMA_URL)
@@ -41,18 +36,14 @@ public class OllamaService {
         this.webClient = WebClient.builder().baseUrl(OLLAMA_URL).build();
     }
 
-    /**
-     * Optimized for JSON responses (like your nutrition plan)
-     */
     public String getJsonResponse(String prompt) {
-        // We set format to "json" and keep_alive to -1 (infinite)
         OllamaRequest request = new OllamaRequest(
                 MODEL,
                 prompt,
                 false,
                 null,
                 -1L,
-                new OllamaOptions(0.0/*, 1000, 2048*/)
+                new OllamaOptions(0.0)
         );
 
         return executeRequest(request);
@@ -62,11 +53,11 @@ public class OllamaService {
         OllamaRequest request = new OllamaRequest(
                 MODEL,
                 userPrompt,
-                systemPrompt, // Adding system prompt support
+                systemPrompt,
                 false,
-                null,         // Not forcing JSON here unless needed
+                null,
                 -1L,
-                new OllamaOptions(0.4/*, 1000, 2048*/)
+                new OllamaOptions(0.4)
         );
 
         return executeRequest(request);
@@ -84,24 +75,22 @@ public class OllamaService {
     }
 
     public Flux<String> streamAiResponse(String systemPrompt, String userPrompt) {
-        // stream: true is the magic key for Ollama
         OllamaRequest request = new OllamaRequest(
                 MODEL,
                 userPrompt,
                 systemPrompt,
-                true, // MUST BE TRUE
+                true,
                 null,
                 -1L,
                 new OllamaOptions(0.4)
         );
 
-        // We use Flux.create to wrap the synchronous blocking read
         return webClient.post()
                 .uri("/generate")
                 .bodyValue(request)
-                .accept(MediaType.APPLICATION_NDJSON) // Ollama streams are newline-delimited JSON
+                .accept(MediaType.APPLICATION_NDJSON)
                 .retrieve()
-                .bodyToFlux(String.class) // Get raw lines
+                .bodyToFlux(String.class)
                 .map(line -> {
                     try {
                         return objectMapper.readValue(line, OllamaResponse.class).response();
@@ -112,12 +101,11 @@ public class OllamaService {
     }
 
     public Flux<ClassRecommendationDTO> getRecommendationsStream(String systemPrompt, String userFormattedPrompt) {
-        // Ensure the AI is prompted to return an array of objects
         OllamaRequest request = new OllamaRequest(
                 MODEL,
                 userFormattedPrompt,
                 systemPrompt,
-                true, // MUST BE TRUE
+                true,
                 null,
                 -1L,
                 new OllamaOptions(0.4)
@@ -126,7 +114,7 @@ public class OllamaService {
                 .uri("/generate")
                 .bodyValue(request)
                 .retrieve()
-                .bodyToFlux(ClassRecommendationDTO.class) // Spring decodes each object as it arrives!
+                .bodyToFlux(ClassRecommendationDTO.class)
                 .delayElements(Duration.ofMillis(500));
     }
 }

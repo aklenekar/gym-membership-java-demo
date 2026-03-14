@@ -6,6 +6,7 @@ import com.apexgym.entity.BookingStatus;
 import com.apexgym.entity.ClassBooking;
 import com.apexgym.entity.GymClass;
 import com.apexgym.entity.User;
+import com.apexgym.mapper.GymClassMapper;
 import com.apexgym.repository.ClassBookingRepository;
 import com.apexgym.repository.GymClassRepository;
 import com.apexgym.repository.UserRepository;
@@ -25,35 +26,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GymClassService {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final GymClassRepository gymClassRepository;
     private final ClassBookingRepository classBookingRepository;
     private final UserRepository userRepository;
+    private final GymClassMapper gymClassMapper;
 
-    /**
-     * -----------------------------------------------------------------
-     * READ
-     * -----------------------------------------------------------------
-     */
     public List<GymClassDTO> findAll() {
-        return gymClassRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+        return gymClassRepository.findAll().stream()
+                .map(gymClassMapper::toDTO)
+                .collect(Collectors.toList());
     }
-
 
     public List<GymClass> findUpcomingClasses(LocalDateTime now) {
         return gymClassRepository.findUpcomingClasses(now);
     }
 
-    /**
-     * Retrieve classes with optional filters.
-     *
-     * @param category   filter by category (e.g. "HIIT") – pass null/empty for no filter
-     * @param instructor filter by instructor name – pass null/empty for no filter
-     * @param day        "today", "tomorrow", "week" or null/empty
-     */
-    public List<GymClassDTO> findByFilters(String category,
-                                           String instructor,
-                                           String day, String email) {
+    public List<GymClassDTO> findByFilters(String category, String instructor, String day, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -71,11 +59,8 @@ public class GymClassService {
         }
 
         if (day != null && !day.isBlank() && !"all".equalsIgnoreCase(day)) {
-            // 1. Declare variables that will be assigned once
             LocalDateTime finalStart;
             LocalDateTime finalEnd;
-            // Use temporary variables for calculation if needed,
-            // or just ensure the paths below only assign the variables ONCE.
             switch (day.toLowerCase()) {
                 case "today" -> {
                     finalStart = currentTime.with(LocalTime.MIN);
@@ -95,8 +80,6 @@ public class GymClassService {
                 }
             }
 
-            // 2. Because finalStart and finalEnd are assigned exactly once,
-            // they are "effectively final" and safe for the Lambda.
             if (finalStart != null) {
                 spec = spec.and((root, query, cb) ->
                         cb.between(root.get("classDate"), finalStart, finalEnd)
@@ -106,7 +89,6 @@ public class GymClassService {
 
         List<GymClass> gymClasses = gymClassRepository.findAll(spec);
 
-        // Get user's bookings
         List<ClassBooking> userBookings = classBookingRepository
                 .findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(user.getId(), BookingStatus.BOOKED, currentTime);
 
@@ -114,7 +96,7 @@ public class GymClassService {
                 .collect(Collectors.toMap(cb -> cb.getGymClass().getId(), cb -> cb));
 
         return gymClasses.stream().map(entity -> {
-            GymClassDTO dto = toDTO(entity);
+            GymClassDTO dto = gymClassMapper.toDTO(entity);
             if (bookingClassIds.containsKey(dto.id())) {
                 return GymClassDTO.builder()
                         .id(dto.id())
@@ -136,31 +118,8 @@ public class GymClassService {
     }
 
     public GymClassDTO getById(Long id) {
-        return gymClassRepository.findById(id).map(this::toDTO)
+        return gymClassRepository.findById(id).map(gymClassMapper::toDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id " + id));
-    }
-
-    private GymClassDTO toDTO(GymClass entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        // Calculate spots remaining for the "spotsInfo" field
-        int remaining = entity.getMaxCapacity() - entity.getCurrentBookings();
-        String spotsInfo = remaining + " spots left";
-
-        return GymClassDTO.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .instructor(entity.getInstructorName())
-                .location(entity.getLocation())
-                .startTime(entity.getClassDate() != null ? entity.getClassDate().format(FORMATTER) : null)
-                .durationMin(entity.getDurationMinutes() + " mins")
-                .capacity(String.valueOf(entity.getMaxCapacity()))
-                .booked(String.valueOf(entity.getCurrentBookings()))
-                .spotsInfo(spotsInfo)
-                .category(entity.getCategory().name())
-                .build();
     }
 
     public List<ClassAttendance> getAttendanceHistory(String email) {

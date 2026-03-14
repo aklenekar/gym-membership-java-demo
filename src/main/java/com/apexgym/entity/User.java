@@ -1,5 +1,8 @@
 package com.apexgym.entity;
 
+import com.apexgym.entity.embeddable.Address;
+import com.apexgym.entity.embeddable.EmergencyContact;
+import com.apexgym.entity.embeddable.HealthInfo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,38 +57,14 @@ public class User implements UserDetails {
     @Column(name = "gender")
     private String gender;
 
-    // Address
-    @Column(name = "street")
-    private String street;
+    @Embedded
+    private Address address;
 
-    @Column(name = "city")
-    private String city;
+    @Embedded
+    private EmergencyContact emergencyContact;
 
-    @Column(name = "state")
-    private String state;
-
-    @Column(name = "zip_code")
-    private String zipCode;
-
-    @Column(name = "country")
-    private String country;
-
-    // Emergency Contact
-    @Column(name = "emergency_contact_name")
-    private String emergencyContactName;
-
-    @Column(name = "emergency_contact_phone")
-    private String emergencyContactPhone;
-
-    @Column(name = "emergency_contact_relationship")
-    private String emergencyContactRelationship;
-
-    // Health Info
-    @Column(name = "medical_conditions", length = 1000)
-    private String medicalConditions;
-
-    @Column(name = "fitness_goals", length = 1000)
-    private String fitnessGoals;
+    @Embedded
+    private HealthInfo healthInfo;
 
     @Column(name = "preferences", length = 500, nullable = true)
     private String preferences;
@@ -100,6 +79,9 @@ public class User implements UserDetails {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (address == null) address = new Address();
+        if (emergencyContact == null) emergencyContact = new EmergencyContact();
+        if (healthInfo == null) healthInfo = new HealthInfo();
     }
 
     @PreUpdate

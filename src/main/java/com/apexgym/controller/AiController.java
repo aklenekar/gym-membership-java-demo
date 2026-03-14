@@ -1,7 +1,7 @@
 package com.apexgym.controller;
 
 import com.apexgym.dto.ai.*;
-import com.apexgym.external.AiService;
+import com.apexgym.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,31 +22,27 @@ public class AiController {
     private final CommonHelper commonHelper;
 
     @PostMapping("/recommend/classes")
-    public ResponseEntity<List<ClassRecommendationDTO>> recommendClasses(
-            /*@RequestBody ClassRecommendationRequest request*/) {
+    public ResponseEntity<List<ClassRecommendationDTO>> recommendClasses() {
         String email = commonHelper.getCurrentUserEmail();
         List<ClassRecommendationDTO> recommendations = aiService.getRecommendedClasses(email);
         return ResponseEntity.ok(recommendations);
     }
 
     @PostMapping(value = "/v2/recommend/classes", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ClassRecommendationDTO> recommendClassesStream(
-            /*@RequestBody ClassRecommendationRequest request*/) {
+    public Flux<ClassRecommendationDTO> recommendClassesStream() {
         String email = commonHelper.getCurrentUserEmail();
         return aiService.getRecommendedClassesStreamResponse(email);
     }
 
     @PostMapping("/workout/plan")
-    public ResponseEntity<List<String>> generateWorkoutPlan(
-            /*@RequestBody WorkoutPlanRequest request*/) {
+    public ResponseEntity<List<String>> generateWorkoutPlan() {
         String email = commonHelper.getCurrentUserEmail();
         List<String> plan = aiService.generateWorkoutPlan(email);
         return ResponseEntity.ok(plan);
     }
 
     @PostMapping("/nutrition/plan")
-    public ResponseEntity<String> getNutritionPlan(
-            /*@RequestBody NutritionRequest request*/) {
+    public ResponseEntity<String> getNutritionPlan() {
         String email = commonHelper.getCurrentUserEmail();
         String plan = aiService.getNutritionPlan(email);
         return ResponseEntity.ok(plan);
@@ -54,7 +50,6 @@ public class AiController {
 
     @PostMapping(value = "/chat", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<String> chat(@RequestBody ChatRequest request) {
-        // General fitness Q&A
         return aiService.chatResponse(request);
     }
 }

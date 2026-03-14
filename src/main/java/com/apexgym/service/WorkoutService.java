@@ -5,6 +5,7 @@ import com.apexgym.dto.WorkoutDTO;
 import com.apexgym.dto.WorkoutRequest;
 import com.apexgym.dto.WorkoutsResponseDTO;
 import com.apexgym.entity.*;
+import com.apexgym.mapper.WorkoutMapper;
 import com.apexgym.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +27,7 @@ public class WorkoutService {
     private final ClassBookingRepository classBookingRepository;
     private final GoalRepository goalRepository;
     private final ActivityRepository activityRepository;
+    private final WorkoutMapper workoutMapper;
 
     public WorkoutsResponseDTO getWorkouts(String email, String workout, String day) {
         User user = userRepository.findByEmail(email)
@@ -44,11 +45,8 @@ public class WorkoutService {
         }
 
         if (day != null && !day.isBlank() && !"all".equalsIgnoreCase(day)) {
-            // 1. Declare variables that will be assigned once
             LocalDateTime finalStart;
             LocalDateTime finalEnd;
-            // Use temporary variables for calculation if needed,
-            // or just ensure the paths below only assign the variables ONCE.
             switch (day.toLowerCase()) {
                 case "today" -> {
                     finalStart = currentTime.with(LocalTime.MIN);
@@ -68,8 +66,6 @@ public class WorkoutService {
                 }
             }
 
-            // 2. Because finalStart and finalEnd are assigned exactly once,
-            // they are "effectively final" and safe for the Lambda.
             if (finalStart != null) {
                 spec = spec.and((root, query, cb) ->
                         cb.between(root.get("startTime"), finalStart, finalEnd)
@@ -82,7 +78,7 @@ public class WorkoutService {
 
         return WorkoutsResponseDTO.builder()
                 .monthlyStats(getMonthlyStats(user.getId()))
-                .workouts(sessions.stream().map(this::convertToDTO).collect(Collectors.toList()))
+                .workouts(sessions.stream().map(workoutMapper::toDTO).collect(Collectors.toList()))
                 .build();
     }
 
@@ -110,31 +106,13 @@ public class WorkoutService {
                 .build();
     }
 
-    private WorkoutDTO convertToDTO(WorkoutSession session) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, h:mm a");
-
-        return WorkoutDTO.builder()
-                .id(session.getId())
-                .category(session.getCategory().name())
-                .workoutType(session.getWorkoutType())
-                .startTime(session.getStartTime().format(formatter))
-                .durationMinutes(session.getDurationMinutes())
-                .caloriesBurned(session.getCaloriesBurned())
-                .notes(session.getNotes())
-                .build();
-    }
-
     public WorkoutDTO submitWorkoutSession(WorkoutRequest workoutRequest, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        // 1. Parse the strings into Date and Time objects
+        
         LocalDate date = LocalDate.parse(workoutRequest.startDate());
         LocalTime time = LocalTime.parse(workoutRequest.startTime());
-
-        // 2. Combine into startTime (LocalDateTime)
         LocalDateTime startTime = LocalDateTime.of(date, time);
-
-        // 3. Convert duration string to long and calculate endTime
         long durationMinutes = Long.parseLong(workoutRequest.durationMinutes());
         LocalDateTime endTime = startTime.plusMinutes(durationMinutes);
 
@@ -149,7 +127,6 @@ public class WorkoutService {
                 .build();
         workoutSessionRepository.save(session);
 
-        // Create activity
         Activity activity = Activity.builder()
                 .user(user)
                 .type(ActivityType.WORKOUT)
@@ -158,6 +135,6 @@ public class WorkoutService {
                 .build();
         activityRepository.save(activity);
 
-        return convertToDTO(session);
+        return workoutMapper.toDTO(session);
     }
 }
