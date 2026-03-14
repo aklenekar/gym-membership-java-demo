@@ -10,14 +10,13 @@ import com.apexgym.mapper.GymClassMapper;
 import com.apexgym.repository.ClassBookingRepository;
 import com.apexgym.repository.GymClassRepository;
 import com.apexgym.repository.UserRepository;
+import com.apexgym.repository.specification.GymClassSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,52 +44,11 @@ public class GymClassService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Specification<GymClass> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
-        LocalDateTime currentTime = LocalDateTime.now();
-
-        if (category != null && !category.isBlank() && !"all".equalsIgnoreCase(category)) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(cb.lower(root.get("category")), category.toLowerCase()));
-        }
-
-        if (instructor != null && !instructor.isBlank() && !"all".equalsIgnoreCase(instructor)) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(cb.lower(root.get("instructorName")), instructor.toLowerCase()));
-        }
-
-        if (day != null && !day.isBlank() && !"all".equalsIgnoreCase(day)) {
-            LocalDateTime finalStart;
-            LocalDateTime finalEnd;
-            switch (day.toLowerCase()) {
-                case "today" -> {
-                    finalStart = currentTime.with(LocalTime.MIN);
-                    finalEnd = finalStart.with(LocalTime.MAX);
-                }
-                case "tomorrow" -> {
-                    finalStart = currentTime.plusDays(1).with(LocalTime.MIN);
-                    finalEnd = finalStart.with(LocalTime.MAX);
-                }
-                case "week" -> {
-                    finalStart = currentTime.with(LocalTime.MIN);
-                    finalEnd = finalStart.plusDays(7).with(LocalTime.MAX);
-                }
-                default -> {
-                    finalStart = null;
-                    finalEnd = null;
-                }
-            }
-
-            if (finalStart != null) {
-                spec = spec.and((root, query, cb) ->
-                        cb.between(root.get("classDate"), finalStart, finalEnd)
-                );
-            }
-        }
-
+        Specification<GymClass> spec = GymClassSpecifications.withFilters(category, instructor, day);
         List<GymClass> gymClasses = gymClassRepository.findAll(spec);
 
         List<ClassBooking> userBookings = classBookingRepository
-                .findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(user.getId(), BookingStatus.BOOKED, currentTime);
+                .findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(user.getId(), BookingStatus.BOOKED, LocalDateTime.now());
 
         Map<Long, ClassBooking> bookingClassIds = userBookings.stream()
                 .collect(Collectors.toMap(cb -> cb.getGymClass().getId(), cb -> cb));

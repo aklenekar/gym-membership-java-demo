@@ -6,9 +6,11 @@ import com.apexgym.dto.admin.*;
 import com.apexgym.entity.*;
 import com.apexgym.mapper.AdminMapper;
 import com.apexgym.repository.*;
+import com.apexgym.repository.specification.UserSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -48,7 +50,8 @@ public class AdminService {
             status = MembershipStatus.valueOf(statusStr.toUpperCase());
         }
 
-        Page<User> usersPage = userRepository.findAllWithFilters(plan, status, search, pageRequest);
+        Specification<User> spec = UserSpecifications.withAdminFilters(plan, status, search);
+        Page<User> usersPage = userRepository.findAll(spec, pageRequest);
 
         LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
 
