@@ -1,7 +1,7 @@
 package com.apexgym.shared.mappers;
 
 import com.apexgym.auth.persistence.User;
-import com.apexgym.dto.UserDTO;
+import com.apexgym.profile.dto.UserDTO;
 import com.apexgym.profile.dto.AddressDTO;
 import com.apexgym.profile.dto.EmergencyContactDTO;
 import com.apexgym.profile.dto.HealthInfoDTO;

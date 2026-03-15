@@ -1,7 +1,5 @@
-package com.apexgym.repository;
+package com.apexgym.profile.persistence;
 
-import com.apexgym.entity.Goal;
-import com.apexgym.entity.GoalStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

@@ -5,7 +5,7 @@ import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.dto.FitnessClass;
 import com.apexgym.booking.dto.ClassAttendance;
 import com.apexgym.booking.service.GymClassService;
-import com.apexgym.dto.UserProfile;
+import com.apexgym.profile.dto.UserProfile;
 import com.apexgym.ai.infrastructure.strategy.AiStrategy;
 import com.apexgym.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;

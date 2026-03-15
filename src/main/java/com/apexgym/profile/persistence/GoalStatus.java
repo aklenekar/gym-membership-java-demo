@@ -1,4 +1,4 @@
-package com.apexgym.entity;
+package com.apexgym.profile.persistence;
 
 public enum GoalStatus {
     IN_PROGRESS,

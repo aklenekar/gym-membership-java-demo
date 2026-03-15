@@ -1,14 +1,14 @@
-package com.apexgym.service;
+package com.apexgym.tracking.service;
 
 import com.apexgym.admin.dto.StatsDTO;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.booking.persistence.ClassBookingRepository;
-import com.apexgym.dto.*;
-import com.apexgym.entity.Achievement;
-import com.apexgym.entity.Goal;
-import com.apexgym.entity.PersonalRecord;
-import com.apexgym.repository.*;
+import com.apexgym.profile.persistence.*;
+import com.apexgym.tracking.dto.AchievementDTO;
+import com.apexgym.tracking.dto.GoalDTO;
+import com.apexgym.tracking.dto.PersonalRecordDTO;
+import com.apexgym.tracking.dto.ProgressResponseDTO;
 import com.apexgym.tracking.persistence.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,5 @@
-package com.apexgym.repository;
+package com.apexgym.profile.persistence;
 
-import com.apexgym.entity.Activity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

@@ -1,9 +1,9 @@
 package com.apexgym.tracking.event;
 
-import com.apexgym.entity.Activity;
-import com.apexgym.entity.ActivityType;
+import com.apexgym.profile.persistence.Activity;
+import com.apexgym.profile.persistence.ActivityType;
 import com.apexgym.booking.event.ClassBookedEvent;
-import com.apexgym.repository.ActivityRepository;
+import com.apexgym.profile.persistence.ActivityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

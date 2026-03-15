@@ -1,7 +1,7 @@
 package com.apexgym.ai.service;
 
 import com.apexgym.ai.dto.FitnessClass;
-import com.apexgym.dto.RecommendationResponse;
+import com.apexgym.profile.dto.RecommendationResponse;
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.ObjectMapper;
 

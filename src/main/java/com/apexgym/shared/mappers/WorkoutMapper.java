@@ -1,7 +1,7 @@
 package com.apexgym.shared.mappers;
 
 import com.apexgym.tracking.dto.WorkoutDTO;
-import com.apexgym.entity.WorkoutSession;
+import com.apexgym.profile.persistence.WorkoutSession;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;

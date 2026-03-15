@@ -4,7 +4,7 @@ import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.Role;
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.booking.persistence.ClassBookingRepository;
-import com.apexgym.dto.UserProfile;
+import com.apexgym.profile.dto.UserProfile;
 import com.apexgym.profile.dto.*;
 import com.apexgym.profile.persistence.Membership;
 import com.apexgym.profile.persistence.MembershipRepository;

@@ -1,7 +1,7 @@
-package com.apexgym.controller;
+package com.apexgym.profile.web;
 
-import com.apexgym.dto.DashboardResponseDTO;
-import com.apexgym.service.DashboardService;
+import com.apexgym.profile.dto.DashboardResponseDTO;
+import com.apexgym.profile.service.DashboardService;
 import com.apexgym.shared.CommonHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

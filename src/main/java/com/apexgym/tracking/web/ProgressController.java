@@ -1,7 +1,7 @@
-package com.apexgym.controller;
+package com.apexgym.tracking.web;
 
-import com.apexgym.dto.ProgressResponseDTO;
-import com.apexgym.service.ProgressService;
+import com.apexgym.tracking.dto.ProgressResponseDTO;
+import com.apexgym.tracking.service.ProgressService;
 import com.apexgym.shared.CommonHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

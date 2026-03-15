@@ -1,4 +1,4 @@
-package com.apexgym.dto;
+package com.apexgym.tracking.dto;
 
 import com.apexgym.admin.dto.StatsDTO;
 import lombok.Builder;

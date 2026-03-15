@@ -1,4 +1,4 @@
-package com.apexgym.dto;
+package com.apexgym.profile.dto;
 
 import com.apexgym.ai.dto.FitnessClass;
 

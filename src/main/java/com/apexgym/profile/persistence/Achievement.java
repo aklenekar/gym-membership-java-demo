@@ -1,4 +1,4 @@
-package com.apexgym.entity;
+package com.apexgym.profile.persistence;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

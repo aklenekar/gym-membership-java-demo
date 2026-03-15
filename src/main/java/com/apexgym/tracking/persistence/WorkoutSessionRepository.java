@@ -1,6 +1,6 @@
 package com.apexgym.tracking.persistence;
 
-import com.apexgym.entity.WorkoutSession;
+import com.apexgym.profile.persistence.WorkoutSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

@@ -1,4 +1,4 @@
-package com.apexgym.entity;
+package com.apexgym.profile.persistence;
 
 import com.apexgym.auth.persistence.User;
 import com.apexgym.booking.persistence.GymClassCategory;

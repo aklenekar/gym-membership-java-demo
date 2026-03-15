@@ -1,7 +1,7 @@
-package com.apexgym.controller;
+package com.apexgym.profile.web;
 
-import com.apexgym.dto.UserDTO;
-import com.apexgym.service.UserService;
+import com.apexgym.profile.dto.UserDTO;
+import com.apexgym.profile.service.UserService;
 import com.apexgym.shared.CommonHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
