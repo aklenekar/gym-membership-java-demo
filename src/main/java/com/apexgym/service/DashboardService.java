@@ -1,8 +1,22 @@
 package com.apexgym.service;
 
+import com.apexgym.dto.DashboardResponseDTO;
+import com.apexgym.admin.dto.StatsDTO;
+import com.apexgym.auth.persistence.User;
+import com.apexgym.auth.persistence.UserRepository;
+import com.apexgym.booking.dto.UpcomingClassDTO;
+import com.apexgym.booking.persistence.BookingStatus;
+import com.apexgym.booking.persistence.ClassBookingRepository;
+import com.apexgym.booking.persistence.GymClass;
+import com.apexgym.booking.service.GymClassService;
 import com.apexgym.dto.*;
 import com.apexgym.entity.*;
+import com.apexgym.profile.dto.MembershipInfoDTO;
+import com.apexgym.profile.persistence.Membership;
+import com.apexgym.profile.persistence.MembershipRepository;
 import com.apexgym.repository.*;
+import com.apexgym.tracking.persistence.ClassBooking;
+import com.apexgym.tracking.persistence.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.Duration;

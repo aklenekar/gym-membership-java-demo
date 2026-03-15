@@ -1,5 +1,6 @@
 package com.apexgym.dto;
 
+import com.apexgym.admin.dto.StatsDTO;
 import lombok.Builder;
 import java.util.List;
 

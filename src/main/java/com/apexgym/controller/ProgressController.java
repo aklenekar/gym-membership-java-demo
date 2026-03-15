@@ -2,6 +2,7 @@ package com.apexgym.controller;
 
 import com.apexgym.dto.ProgressResponseDTO;
 import com.apexgym.service.ProgressService;
+import com.apexgym.shared.CommonHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

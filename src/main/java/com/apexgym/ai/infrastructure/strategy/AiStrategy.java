@@ -1,7 +1,7 @@
 package com.apexgym.ai.infrastructure.strategy;
 
-import com.apexgym.dto.FitnessClass;
-import com.apexgym.dto.ai.ClassRecommendationDTO;
+import com.apexgym.ai.dto.ClassRecommendationDTO;
+import com.apexgym.ai.dto.FitnessClass;
 import reactor.core.publisher.Flux;
 
 import java.util.List;

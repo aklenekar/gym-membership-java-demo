@@ -1,5 +1,6 @@
 package com.apexgym.entity;
 
+import com.apexgym.auth.persistence.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,13 +1,11 @@
 package com.apexgym.service;
 
+import com.apexgym.auth.persistence.User;
+import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.dto.UserDTO;
-import com.apexgym.entity.User;
-import com.apexgym.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

@@ -2,6 +2,7 @@ package com.apexgym.controller;
 
 import com.apexgym.dto.UserDTO;
 import com.apexgym.service.UserService;
+import com.apexgym.shared.CommonHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

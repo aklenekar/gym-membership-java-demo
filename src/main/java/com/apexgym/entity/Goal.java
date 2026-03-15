@@ -1,5 +1,6 @@
 package com.apexgym.entity;
 
+import com.apexgym.auth.persistence.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,6 +45,7 @@ public class Goal {
     private GoalStatus status; // IN_PROGRESS, COMPLETED, FAILED
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
     public Integer getProgressPercentage() {

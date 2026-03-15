@@ -1,10 +1,10 @@
 package com.apexgym.ai.infrastructure.strategy;
 
-import com.apexgym.dto.FitnessClass;
-import com.apexgym.dto.ai.ClassRecommendationDTO;
 import com.apexgym.ai.domain.AiPromptProvider;
+import com.apexgym.ai.dto.ClassRecommendationDTO;
+import com.apexgym.ai.dto.FitnessClass;
 import com.apexgym.ai.infrastructure.ollama.*;
-import com.apexgym.service.RecommendationParser;
+import com.apexgym.ai.service.RecommendationParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;

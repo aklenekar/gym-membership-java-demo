@@ -1,6 +1,6 @@
 package com.apexgym.ai.infrastructure.ollama;
 
-import com.apexgym.dto.ai.ClassRecommendationDTO;
+import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.domain.AiPromptProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

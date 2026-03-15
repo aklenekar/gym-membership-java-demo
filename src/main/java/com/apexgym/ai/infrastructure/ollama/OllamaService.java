@@ -1,9 +1,9 @@
 package com.apexgym.ai.infrastructure.ollama;
 
-import com.apexgym.dto.OllamaOptions;
-import com.apexgym.dto.OllamaRequest;
-import com.apexgym.dto.OllamaResponse;
-import com.apexgym.dto.ai.ClassRecommendationDTO;
+import com.apexgym.ai.dto.ClassRecommendationDTO;
+import com.apexgym.ai.dto.OllamaOptions;
+import com.apexgym.ai.dto.OllamaRequest;
+import com.apexgym.ai.dto.OllamaResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;

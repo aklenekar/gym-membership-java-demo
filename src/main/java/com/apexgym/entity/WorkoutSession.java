@@ -1,5 +1,7 @@
 package com.apexgym.entity;
 
+import com.apexgym.auth.persistence.User;
+import com.apexgym.booking.persistence.GymClassCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
