@@ -46,7 +46,7 @@ cors:
 
 gemini:
   api:
-    key: AIzaSyCJeW0-P2e0_wfdgwc7LdRmepswzC_2PyU
+    key: api-key
   model: gemini-2.0-flash
 
 # Logging
