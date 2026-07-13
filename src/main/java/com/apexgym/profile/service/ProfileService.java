@@ -7,7 +7,9 @@ import com.apexgym.booking.persistence.ClassBookingRepository;
 import com.apexgym.profile.dto.UserProfile;
 import com.apexgym.profile.dto.*;
 import com.apexgym.profile.persistence.Membership;
+import com.apexgym.profile.persistence.MembershipPlan;
 import com.apexgym.profile.persistence.MembershipRepository;
+import com.apexgym.profile.persistence.MembershipStatus;
 import com.apexgym.profile.persistence.embeddable.Address;
 import com.apexgym.profile.persistence.embeddable.EmergencyContact;
 import com.apexgym.profile.persistence.embeddable.HealthInfo;
@@ -178,6 +180,23 @@ public class ProfileService {
 
         user.setPassword(passwordEncoder.encode(req.password()));
         User saved = userRepository.save(user);
+
+        MembershipPlan plan = MembershipPlan.valueOf(req.plan().toUpperCase());
+        Double price = switch (plan) {
+            case STARTER -> 29.0;
+            case PRO -> 49.0;
+            case ELITE -> 79.0;
+        };
+
+        Membership membership = Membership.builder()
+                .user(saved)
+                .plan(plan)
+                .status(MembershipStatus.ACTIVE)
+                .memberSince(LocalDate.now())
+                .nextBillingDate(LocalDate.now().plusMonths(1))
+                .price(price)
+                .build();
+        membershipRepository.save(membership);
 
         return getProfile(saved.getEmail());
     }

@@ -42,5 +42,7 @@ public record CreateProfileRequest(
     String emergencyContactRelationship,
 
     String medicalConditions,
-    String fitnessGoals
+    String fitnessGoals,
+
+    @NotBlank(message = "Plan is required") String plan
 ) {}

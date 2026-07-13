@@ -1,0 +1,66 @@
+package com.apexgym.profile.service;
+
+import com.apexgym.auth.persistence.User;
+import com.apexgym.auth.persistence.UserRepository;
+import com.apexgym.profile.dto.MembershipInfoDTO;
+import com.apexgym.profile.persistence.Membership;
+import com.apexgym.profile.persistence.MembershipPlan;
+import com.apexgym.profile.persistence.MembershipRepository;
+import com.apexgym.profile.persistence.MembershipStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+
+@Service
+@RequiredArgsConstructor
+public class MembershipService {
+
+    private final UserRepository userRepository;
+    private final MembershipRepository membershipRepository;
+
+    @Transactional
+    public MembershipInfoDTO upgradePlan(String email, String planStr) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        MembershipPlan newPlan;
+        try {
+            newPlan = MembershipPlan.valueOf(planStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid plan: " + planStr);
+        }
+
+        Membership membership = membershipRepository.findByUserId(user.getId())
+                .orElseGet(() -> Membership.builder()
+                        .user(user)
+                        .memberSince(LocalDate.now())
+                        .build());
+
+        if (membership.getPlan() == newPlan) {
+            throw new IllegalArgumentException("Already subscribed to " + newPlan);
+        }
+
+        Double price = switch (newPlan) {
+            case STARTER -> 29.0;
+            case PRO -> 49.0;
+            case ELITE -> 79.0;
+        };
+
+        membership.setPlan(newPlan);
+        membership.setStatus(MembershipStatus.ACTIVE);
+        membership.setPrice(price);
+        membership.setNextBillingDate(LocalDate.now().plusMonths(1));
+
+        membershipRepository.save(membership);
+
+        return MembershipInfoDTO.builder()
+                .plan(membership.getPlan().name())
+                .status(membership.getStatus().name())
+                .memberSince(membership.getMemberSince())
+                .nextBillingDate(membership.getNextBillingDate())
+                .price(membership.getPrice())
+                .build();
+    }
+}

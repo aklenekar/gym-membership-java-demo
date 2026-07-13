@@ -22,7 +22,7 @@ public class OllamaService {
     public static final String OLLAMA_URL = "http://127.0.0.1:11434/api";
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
-    private static final String MODEL = "llama3.2:1b";
+    private static final String MODEL = "llama3.2";
     private final WebClient webClient;
 
     public OllamaService(ObjectMapper objectMapper) {
