@@ -6,12 +6,14 @@ import com.apexgym.ai.dto.FitnessClass;
 import com.apexgym.ai.infrastructure.ollama.*;
 import com.apexgym.ai.service.RecommendationParser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
 
 @Component
+@Primary
 @RequiredArgsConstructor
 public class OllamaAiStrategy implements AiStrategy {
 
