@@ -1,4 +1,4 @@
-package com.apexgym.ai.infrastructure.gemini;
+package com.apexgym.ai.dto.gemini;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;

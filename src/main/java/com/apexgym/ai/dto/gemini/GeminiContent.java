@@ -1,4 +1,4 @@
-package com.apexgym.ai.infrastructure.gemini;
+package com.apexgym.ai.dto.gemini;
 
 import java.util.List;
 

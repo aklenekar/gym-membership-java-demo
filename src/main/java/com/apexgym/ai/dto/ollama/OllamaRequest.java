@@ -1,4 +1,4 @@
-package com.apexgym.ai.dto;
+package com.apexgym.ai.dto.ollama;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -13,7 +13,6 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 
 @Component
-@Primary
 @RequiredArgsConstructor
 public class OllamaAiStrategy implements AiStrategy {
 

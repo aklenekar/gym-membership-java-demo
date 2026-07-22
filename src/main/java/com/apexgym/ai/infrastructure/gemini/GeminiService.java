@@ -1,6 +1,10 @@
 package com.apexgym.ai.infrastructure.gemini;
 
 import com.apexgym.ai.dto.ClassRecommendationDTO;
+import com.apexgym.ai.dto.gemini.GeminiContent;
+import com.apexgym.ai.dto.gemini.GeminiGenerationConfig;
+import com.apexgym.ai.dto.gemini.GeminiRequest;
+import com.apexgym.ai.dto.gemini.GeminiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
