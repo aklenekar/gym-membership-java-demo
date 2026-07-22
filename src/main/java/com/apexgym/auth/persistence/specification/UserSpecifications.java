@@ -18,7 +18,7 @@ public class UserSpecifications {
 
             if (plan != null || status != null) {
                 // Join with membership only if filtering by plan or status
-                var membershipJoin = root.join("memberships", JoinType.LEFT);
+                var membershipJoin = root.join("membership", JoinType.LEFT);
                 if (plan != null) {
                     predicates.add(criteriaBuilder.equal(membershipJoin.get("plan"), plan));
                 }

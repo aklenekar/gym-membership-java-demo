@@ -61,4 +61,10 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long>, JpaSp
 
     @Query("SELECT c FROM GymClass c WHERE c.isActive = true ORDER BY c.classDate ASC")
     List<GymClass> findAllActiveOrderByDate();
+
+    @Query("SELECT c FROM GymClass c WHERE c.isActive = true AND LOWER(c.instructorName) = LOWER(:instructorName) ORDER BY c.classDate ASC")
+    List<GymClass> findByInstructorNameOrderByClassDate(@Param("instructorName") String instructorName);
+
+    @Query("SELECT c FROM GymClass c WHERE c.isActive = true AND LOWER(c.instructorName) = LOWER(:instructorName) AND c.classDate > :now ORDER BY c.classDate ASC")
+    List<GymClass> findUpcomingClassesByInstructor(@Param("instructorName") String instructorName, @Param("now") LocalDateTime now);
 }

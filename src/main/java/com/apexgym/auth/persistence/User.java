@@ -3,6 +3,7 @@ package com.apexgym.auth.persistence;
 import com.apexgym.profile.persistence.embeddable.Address;
 import com.apexgym.profile.persistence.embeddable.EmergencyContact;
 import com.apexgym.profile.persistence.embeddable.HealthInfo;
+import com.apexgym.profile.persistence.Membership;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -66,6 +67,9 @@ public class User implements UserDetails {
 
     @Embedded
     private HealthInfo healthInfo;
+
+    @OneToOne(mappedBy = "user")
+    private Membership membership;
 
     @Column(name = "preferences", length = 500, nullable = true)
     private String preferences;

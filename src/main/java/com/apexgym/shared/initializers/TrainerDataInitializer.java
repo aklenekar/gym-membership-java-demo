@@ -1,5 +1,7 @@
 package com.apexgym.shared.initializers;
 
+import com.apexgym.auth.persistence.User;
+import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.staff.persistence.Trainer;
 import com.apexgym.staff.persistence.TrainerRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 public class TrainerDataInitializer implements CommandLineRunner {
 
     private final TrainerRepository trainerRepository;
+    private final UserRepository userRepository;
 
     @Override
     public void run(String... args) {
@@ -98,8 +101,21 @@ public class TrainerDataInitializer implements CommandLineRunner {
                     .isActive(true)
                     .build());
 
+            // Save trainers first
             trainerRepository.saveAll(trainers);
+
+            // Link trainers to their user accounts
+            trainers.forEach(trainer -> {
+                userRepository.findByEmail(trainer.getEmail()).ifPresent(user -> {
+                    trainer.setUser(user);
+                    trainerRepository.save(trainer);
+                    log.info("Linked trainer {} to user {}", trainer.getFullName(), user.getEmail());
+                });
+            });
+
             log.info("Trainers data created successfully");
         }
     }
 }
+
+
