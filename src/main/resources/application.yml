@@ -49,6 +49,11 @@ gemini:
     key: api-key
   model: gemini-2.0-flash
 
+openrouter:
+  api:
+    key: api-key
+  model: nvidia/nemotron-3-ultra-550b-a55b:free
+
 # Logging
 logging:
   level:
