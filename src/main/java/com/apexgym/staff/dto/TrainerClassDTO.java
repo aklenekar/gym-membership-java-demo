@@ -11,11 +11,10 @@ public record TrainerClassDTO(
     String location,
     LocalDateTime classDate,
     Integer durationMinutes,
-    Integer maxCapacity,
-    Integer currentBookings,
-    Integer availableSpots,
     Boolean isActive,
-    String formattedDate,
-    String formattedTime
+    Integer capacity,
+    Integer bookedCount,
+    String fullStartTime,
+    String status
 ) {}
 

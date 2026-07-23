@@ -46,7 +46,7 @@ public class ComprehensiveDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.count() > 5) {
+        if (userRepository.count() > 10) {
             log.info("✅ Users already exist. Skipping comprehensive initialization.");
             return;
         }

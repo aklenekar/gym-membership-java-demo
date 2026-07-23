@@ -59,7 +59,7 @@ public class TrainerService {
         // Get all active members (candidates)
         List<User> allMembers = userRepository.findAll().stream()
                 .filter(u -> u.getRole().equals(Role.USER) && u.getIsActive())
-                .collect(Collectors.toList());
+                .toList();
 
         List<TrainerCandidateDTO> candidates = allMembers.stream()
                 .map(user -> {
@@ -117,8 +117,7 @@ public class TrainerService {
         // Convert to DTOs with formatting
         List<TrainerClassDTO> classesDto = allClasses.stream()
                 .map(gymClass -> {
-                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
-                    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("EEE, h:mm a");
 
                     return TrainerClassDTO.builder()
                             .id(gymClass.getId())
@@ -127,19 +126,18 @@ public class TrainerService {
                             .location(gymClass.getLocation())
                             .classDate(gymClass.getClassDate())
                             .durationMinutes(gymClass.getDurationMinutes())
-                            .maxCapacity(gymClass.getMaxCapacity())
-                            .currentBookings(gymClass.getCurrentBookings())
-                            .availableSpots(gymClass.getMaxCapacity() - gymClass.getCurrentBookings())
                             .isActive(gymClass.getIsActive())
-                            .formattedDate(gymClass.getClassDate().format(dateFormatter))
-                            .formattedTime(gymClass.getClassDate().format(timeFormatter))
+                            .fullStartTime(gymClass.getClassDate().format(dateFormatter))
+                            .capacity(gymClass.getMaxCapacity())
+                            .bookedCount(gymClass.getCurrentBookings())
+                            .status(calculateClassStatus(gymClass, gymClass.getCurrentBookings()))
                             .build();
                 })
                 .collect(Collectors.toList());
 
-        // Calculate average capacity utilization
+        // implement average capacity utilization
         int avgCapacityUtilization = classesDto.isEmpty() ? 0 : (int) classesDto.stream()
-                .mapToDouble(c -> c.maxCapacity() > 0 ? (c.currentBookings() * 100.0 / c.maxCapacity()) : 0)
+                .mapToDouble(c -> c.capacity() > 0 ? (c.bookedCount() * 100.0 / c.capacity()) : 0)
                 .average()
                 .orElse(0.0);
 
@@ -150,6 +148,13 @@ public class TrainerService {
                 .completedClasses(completedClasses)
                 .avgCapacityUtilization(avgCapacityUtilization)
                 .build();
+    }
+
+    private String calculateClassStatus(GymClass gymClass, long booked) {
+        double fillRate = gymClass.getMaxCapacity() > 0 ? (double) booked / gymClass.getMaxCapacity() : 0;
+        if (fillRate >= 1.0) return "FULL";
+        else if (fillRate >= 0.8) return "ALMOST_FULL";
+        else return "AVAILABLE";
     }
 }
 

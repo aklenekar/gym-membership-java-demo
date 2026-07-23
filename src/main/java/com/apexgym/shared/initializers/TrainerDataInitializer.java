@@ -109,7 +109,6 @@ public class TrainerDataInitializer implements CommandLineRunner {
                 userRepository.findByEmail(trainer.getEmail()).ifPresent(user -> {
                     trainer.setUser(user);
                     trainerRepository.save(trainer);
-                    log.info("Linked trainer {} to user {}", trainer.getFullName(), user.getEmail());
                 });
             });
 
