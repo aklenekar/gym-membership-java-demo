@@ -51,7 +51,7 @@ gemini:
 
 openrouter:
   api:
-    key: api-key
+    key: ${OPENROUTER_API_KEY:default-api-key}
   model: nvidia/nemotron-3-ultra-550b-a55b:free
 
 # Logging
