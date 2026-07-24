@@ -2,6 +2,8 @@ package com.apexgym.ai.infrastructure.ollama;
 
 import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.domain.AiPromptProvider;
+import com.apexgym.booking.persistence.GymClass;
+import com.apexgym.booking.service.GymClassService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +11,7 @@ import reactor.core.publisher.Flux;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,9 +22,11 @@ public class ClassRecommendationService {
     private final ObjectMapper objectMapper;
     private final OllamaService ollamaService;
     private final AiPromptProvider aiPromptProvider;
+    private final GymClassService gymClassService;
 
     public List<ClassRecommendationDTO> getRecommendations(String userGoals, String fitnessLevel, List<String> pastClasses, String availability) {
-        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt();
+        List<GymClass> gymClasses = gymClassService.findUpcomingClasses(LocalDateTime.now());
+        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt(gymClasses);
         String userPrompt = aiPromptProvider.getClassRecommendationUserPrompt(userGoals, fitnessLevel, pastClasses, availability);
         String response = ollamaService.getAiResponse(systemPrompt, userPrompt);
 
@@ -35,7 +40,8 @@ public class ClassRecommendationService {
     }
 
     public Flux<ClassRecommendationDTO> getRecommendationsStream(String userGoals, String fitnessLevel, List<String> pastClasses, String availability) {
-        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt();
+        List<GymClass> gymClasses = gymClassService.findUpcomingClasses(LocalDateTime.now());
+        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt(gymClasses);
         String userPrompt = aiPromptProvider.getClassRecommendationUserPrompt(userGoals, fitnessLevel, pastClasses, availability);
         return ollamaService.getRecommendationsStream(systemPrompt, userPrompt);
     }

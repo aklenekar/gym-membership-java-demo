@@ -8,10 +8,13 @@ import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.gemini.GeminiJsonUtil;
 import com.apexgym.ai.infrastructure.gemini.GeminiService;
 import com.apexgym.ai.service.RecommendationParser;
+import com.apexgym.booking.persistence.GymClass;
+import com.apexgym.booking.service.GymClassService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +27,7 @@ public class GeminiAiStrategy implements AiStrategy {
 
     private final GeminiService geminiService;
     private final AiPromptProvider aiPromptProvider;
+    private final GymClassService gymClassService;
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     @Override
@@ -43,7 +47,8 @@ public class GeminiAiStrategy implements AiStrategy {
 
     @Override
     public List<ClassRecommendationDTO> getRecommendedClasses(String goals, String level, List<String> history, String availability) {
-        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt();
+        List<GymClass> gymClasses = gymClassService.findUpcomingClasses(LocalDateTime.now());
+        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt(gymClasses);
         String userPrompt = aiPromptProvider.getClassRecommendationUserPrompt(goals, level, history, availability);
         String response = geminiService.getAiResponse(systemPrompt, userPrompt);
         return GeminiJsonUtil.parseClassRecommendations(response);
@@ -51,7 +56,8 @@ public class GeminiAiStrategy implements AiStrategy {
 
     @Override
     public Flux<ClassRecommendationDTO> getRecommendedClassesStream(String goals, String level, List<String> history, String availability) {
-        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt();
+        List<GymClass> gymClasses = gymClassService.findUpcomingClasses(LocalDateTime.now());
+        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt(gymClasses);
         String userPrompt = aiPromptProvider.getClassRecommendationUserPrompt(goals, level, history, availability);
         return geminiService.getRecommendationsStream(systemPrompt, userPrompt);
     }

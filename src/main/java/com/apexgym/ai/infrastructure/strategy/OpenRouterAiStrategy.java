@@ -8,6 +8,8 @@ import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.openrouter.OpenRouterService;
 import com.apexgym.ai.service.ChatHistoryService;
 import com.apexgym.ai.service.RecommendationParser;
+import com.apexgym.booking.persistence.GymClass;
+import com.apexgym.booking.service.GymClassService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
@@ -16,6 +18,7 @@ import reactor.core.publisher.Flux;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +33,7 @@ public class OpenRouterAiStrategy implements AiStrategy {
     private final OpenRouterService openRouterService;
     private final AiPromptProvider aiPromptProvider;
     private final ObjectMapper objectMapper;
-    private final ChatHistoryService chatHistoryService;
+    private final GymClassService gymClassService;
 
     @Override
     public String getName() {
@@ -49,7 +52,8 @@ public class OpenRouterAiStrategy implements AiStrategy {
 
     @Override
     public List<ClassRecommendationDTO> getRecommendedClasses(String goals, String level, List<String> history, String availability) {
-        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt();
+        List<GymClass> gymClasses = gymClassService.findUpcomingClasses(LocalDateTime.now());
+        String systemPrompt = aiPromptProvider.getClassRecommendationSystemPrompt(gymClasses);
         String userPrompt = aiPromptProvider.getClassRecommendationUserPrompt(goals, level, history, availability);
         String response = openRouterService.getAiResponse(systemPrompt, userPrompt);
         response = response.replaceAll("```json\\n?", "").replaceAll("```", "").trim();

@@ -3,6 +3,7 @@ package com.apexgym.ai.domain;
 import com.apexgym.booking.persistence.GymClass;
 import com.apexgym.profile.dto.UserProfile;
 import com.apexgym.tracking.persistence.ClassBooking;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,10 +13,18 @@ import java.util.stream.Collectors;
 @Component
 public class AiPromptProvider {
 
-    public String getClassRecommendationSystemPrompt() {
+    public String getClassRecommendationSystemPrompt(List<GymClass> availableClasses) {
+        String scheduleFormatted = getScheduleFormatted(availableClasses);
         return """
                 You are a professional fitness advisor at APEX GYM.
                 Analyze the user profile and recommend 5 gym classes.
+                
+                ### UPCOMING GYM SCHEDULE (NEXT 30 DAYS):
+                %s
+                
+                ### CONVERSATION INSTRUCTIONS:
+                1. Use the provided UPCOMING GYM SCHEDULE to give tailored, accurate recommendations.
+                2. If recommending classes, reference real upcoming classes from the schedule above.
                 
                 Respond ONLY with a JSON array, no markdown, no extra text.
                 Format:
@@ -27,7 +36,7 @@ public class AiPromptProvider {
                     "matchPercentage": 95
                   }
                 ]
-                """;
+                """.formatted(scheduleFormatted);
     }
 
     public String getClassRecommendationUserPrompt(String goals, String level, List<String> history, String availability) {
@@ -104,9 +113,7 @@ public class AiPromptProvider {
                         .map(b -> "- " + b.getGymClass().getName() + " at " + b.getGymClass().getClassDate() + " with " + b.getGymClass().getInstructorName())
                         .collect(Collectors.joining("\n"));
 
-        String scheduleFormatted = availableClasses.stream()
-                .limit(10)
-                .map(c -> "- ID: " + c.getId() + " | " + c.getName() + " (" + c.getCategory() + ") on " + c.getClassDate() + " with " + c.getInstructorName()).collect(Collectors.joining("\n"));
+        String scheduleFormatted = getScheduleFormatted(availableClasses);
 
         return """
                 You are ApexAI, an expert personal trainer and fitness assistant at APEX GYM.
@@ -141,6 +148,12 @@ public class AiPromptProvider {
                 bookingsFormatted,
                 scheduleFormatted
         );
+    }
+
+    private static @NonNull String getScheduleFormatted(List<GymClass> availableClasses) {
+        return availableClasses.stream()
+                .limit(10)
+                .map(c -> "- ID: " + c.getId() + " | " + c.getName() + " (" + c.getCategory() + ") on " + c.getClassDate() + " with " + c.getInstructorName()).collect(Collectors.joining("\n"));
     }
 
     public List<Map<String, Object>> getAgentTools() {
