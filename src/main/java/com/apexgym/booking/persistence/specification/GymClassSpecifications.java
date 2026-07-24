@@ -19,7 +19,7 @@ public class GymClassSpecifications {
 
             if (category != null && !category.isBlank() && !"all".equalsIgnoreCase(category)) {
                 try {
-                    GymClassCategory gymClassCategory = GymClassCategory.fromType(category.toUpperCase());
+                    GymClassCategory gymClassCategory = GymClassCategory.valueOf(category);
                     predicates.add(criteriaBuilder.equal(root.get("category"), gymClassCategory));
                 } catch (IllegalArgumentException e) {
                     // Ignore invalid category

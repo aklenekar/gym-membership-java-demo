@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -36,4 +37,6 @@ public interface ClassBookingRepository extends JpaRepository<ClassBooking, Long
 
     @Query("SELECT COUNT(b) FROM ClassBooking b WHERE b.gymClass.id = :classId AND b.status =com.apexgym.booking.persistence.BookingStatus.BOOKED")
     Long countBookingsByClassId(@Param("classId") Long classId);
+
+    List<ClassBooking> findByUserId(Long userId);
 }

@@ -1,4 +1,4 @@
-package com.apexgym.shared.initializers;
+package archive;
 
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.staff.persistence.Trainer;
