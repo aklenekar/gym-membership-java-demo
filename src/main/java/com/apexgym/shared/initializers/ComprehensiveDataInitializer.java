@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
-@Order(4)
+@Order(5)
 @RequiredArgsConstructor
 @Slf4j
 @Profile("!prod")

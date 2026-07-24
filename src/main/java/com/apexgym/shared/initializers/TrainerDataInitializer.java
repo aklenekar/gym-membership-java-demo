@@ -1,6 +1,5 @@
 package com.apexgym.shared.initializers;
 
-import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.staff.persistence.Trainer;
 import com.apexgym.staff.persistence.TrainerRepository;
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@Order(3)
+@Order(2)
 @RequiredArgsConstructor
 @Slf4j
 public class TrainerDataInitializer implements CommandLineRunner {

@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
-@Order(3)
+@Order(4)
 @RequiredArgsConstructor
 @Slf4j
 public class DashboardDataInitializer implements CommandLineRunner {
