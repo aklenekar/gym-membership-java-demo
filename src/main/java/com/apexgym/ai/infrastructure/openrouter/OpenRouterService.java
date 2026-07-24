@@ -1,7 +1,9 @@
 package com.apexgym.ai.infrastructure.openrouter;
 
+import com.apexgym.ai.dto.ChatMessageDTO;
 import com.apexgym.ai.dto.openrouter.*;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -10,7 +12,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -93,5 +97,54 @@ public class OpenRouterService {
                     }
                 })
                 .filter(content -> !content.isEmpty());
+    }
+
+
+    public Flux<OpenRouterResponse> streamAiResponse(String systemPrompt, List<ChatMessageDTO> history, String userPrompt
+            , List<Map<String, Object>> tools) {
+        List<OpenRouterMessage> messages = getOpenRouterMessages(systemPrompt, history, userPrompt);
+
+        // 4. Construct the OpenRouterRequest
+        OpenRouterRequest request = new OpenRouterRequest(
+                MODEL,
+                messages,
+                tools,
+                0.4,
+                true
+        );
+
+        return webClient.post()
+                .uri("/chat/completions")
+                .bodyValue(request)
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(String.class)
+                .filter(line -> !line.isBlank() && !"[DONE]".equals(line.trim()))
+                .mapNotNull(line -> {
+                    try {
+                        return objectMapper.readValue(line, OpenRouterResponse.class);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                });
+    }
+
+    private static @NonNull List<OpenRouterMessage> getOpenRouterMessages(String systemPrompt, List<ChatMessageDTO> history, String userPrompt) {
+        List<OpenRouterMessage> messages = new ArrayList<>();
+
+        // 1. Always start with the System Prompt
+        messages.add(new OpenRouterMessage("system", systemPrompt));
+
+        // 2. Append past conversation history in chronological order
+        if (history != null && !history.isEmpty()) {
+            for (ChatMessageDTO msg : history) {
+                // Map internal roles to OpenRouter roles ("user" or "assistant")
+                messages.add(new OpenRouterMessage(msg.role(), msg.content()));
+            }
+        }
+
+        // 3. Append the latest user query at the end
+        messages.add(new OpenRouterMessage("user", userPrompt));
+        return messages;
     }
 }

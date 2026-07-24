@@ -1,16 +1,18 @@
 package com.apexgym.ai.infrastructure.strategy;
 
 import com.apexgym.ai.domain.AiPromptProvider;
+import com.apexgym.ai.dto.ChatMessageDTO;
 import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.dto.FitnessClass;
+import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.ollama.*;
 import com.apexgym.ai.service.RecommendationParser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -61,4 +63,10 @@ public class OllamaAiStrategy implements AiStrategy {
     public Flux<String> chatResponse(String systemPrompt, String userMessage) {
         return ollamaService.streamAiResponse(systemPrompt, userMessage);
     }
+
+    @Override
+    public Flux<OpenRouterResponse> chatResponseWithHistory(String systemPrompt, List<ChatMessageDTO> conversationHistory, String userMessage, List<Map<String, Object>> tools) {
+        return null;
+    }
+
 }

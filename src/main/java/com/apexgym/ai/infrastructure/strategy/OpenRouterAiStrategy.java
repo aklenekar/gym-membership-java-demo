@@ -1,9 +1,12 @@
 package com.apexgym.ai.infrastructure.strategy;
 
 import com.apexgym.ai.domain.AiPromptProvider;
+import com.apexgym.ai.dto.ChatMessageDTO;
 import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.dto.FitnessClass;
+import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.openrouter.OpenRouterService;
+import com.apexgym.ai.service.ChatHistoryService;
 import com.apexgym.ai.service.RecommendationParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +17,7 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
@@ -26,6 +30,7 @@ public class OpenRouterAiStrategy implements AiStrategy {
     private final OpenRouterService openRouterService;
     private final AiPromptProvider aiPromptProvider;
     private final ObjectMapper objectMapper;
+    private final ChatHistoryService chatHistoryService;
 
     @Override
     public String getName() {
@@ -92,5 +97,11 @@ public class OpenRouterAiStrategy implements AiStrategy {
     @Override
     public Flux<String> chatResponse(String systemPrompt, String userMessage) {
         return openRouterService.streamAiResponse(systemPrompt, userMessage);
+    }
+
+    @Override
+    public Flux<OpenRouterResponse> chatResponseWithHistory(String systemPrompt, List<ChatMessageDTO> conversationHistory
+            , String userMessage, List<Map<String, Object>> tools) {
+        return openRouterService.streamAiResponse(systemPrompt, conversationHistory, userMessage, tools);
     }
 }

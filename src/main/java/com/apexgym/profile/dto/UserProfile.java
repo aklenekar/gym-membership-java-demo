@@ -4,10 +4,14 @@ import lombok.Builder;
 
 @Builder
 public record UserProfile(
-    String goals,
-    String level,
-    String availability,
-    String preferences,
-    Integer age,
-    String membershipPlan
-) {}
+        Long id,
+        String email,
+        String name,
+        String goals,
+        String level,
+        String availability,
+        String preferences,
+        Integer age,
+        String membershipPlan
+) {
+}

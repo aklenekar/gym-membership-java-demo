@@ -1,8 +1,10 @@
 package com.apexgym.ai.infrastructure.strategy;
 
 import com.apexgym.ai.domain.AiPromptProvider;
+import com.apexgym.ai.dto.ChatMessageDTO;
 import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.dto.FitnessClass;
+import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.gemini.GeminiJsonUtil;
 import com.apexgym.ai.infrastructure.gemini.GeminiService;
 import com.apexgym.ai.service.RecommendationParser;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,5 +80,10 @@ public class GeminiAiStrategy implements AiStrategy {
     @Override
     public Flux<String> chatResponse(String systemPrompt, String userMessage) {
         return geminiService.streamAiResponse(systemPrompt, userMessage);
+    }
+
+    @Override
+    public Flux<OpenRouterResponse> chatResponseWithHistory(String systemPrompt, List<ChatMessageDTO> conversationHistory, String userMessage, List<Map<String, Object>> tools) {
+        return null;
     }
 }

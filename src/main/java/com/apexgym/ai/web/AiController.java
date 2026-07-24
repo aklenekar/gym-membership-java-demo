@@ -52,6 +52,7 @@ public class AiController {
 
     @PostMapping(value = "/chat", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<String> chat(@RequestBody ChatRequest request) {
-        return aiService.chatResponse(request);
+        String email = commonHelper.getCurrentUserEmail();
+        return aiService.chatResponse(email, request);
     }
 }

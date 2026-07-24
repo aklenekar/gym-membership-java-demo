@@ -211,6 +211,9 @@ public class ProfileService {
         HealthInfo health = user.getHealthInfo();
 
         return UserProfile.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getFirstName() + " " + user.getLastName())
                 .goals(health != null ? health.getFitnessGoals() : null)
                 .level(determineFitnessLevel(user.getId()))
                 .availability(determineAvailability(user.getId()))

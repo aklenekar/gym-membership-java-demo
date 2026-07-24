@@ -1,8 +1,10 @@
 package com.apexgym.ai.dto.gemini;
 
+import com.apexgym.ai.dto.AiResponse;
+
 import java.util.List;
 
-public record GeminiResponse(List<GeminiCandidate> candidates) {
+public record GeminiResponse(List<GeminiCandidate> candidates) implements AiResponse {
 
     public String extractText() {
         if (candidates == null || candidates.isEmpty()) return "";
