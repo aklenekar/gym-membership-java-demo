@@ -212,6 +212,7 @@ public class ProfileService {
 
         return UserProfile.builder()
                 .id(user.getId())
+                .role(user.getRole().name())
                 .email(user.getEmail())
                 .name(user.getFirstName() + " " + user.getLastName())
                 .goals(health != null ? health.getFitnessGoals() : null)

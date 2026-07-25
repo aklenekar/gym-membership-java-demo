@@ -5,6 +5,7 @@ import lombok.Builder;
 @Builder
 public record UserProfile(
         Long id,
+        String role,
         String email,
         String name,
         String goals,

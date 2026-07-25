@@ -17,6 +17,7 @@ import com.apexgym.profile.service.ProfileService;
 import com.apexgym.tracking.persistence.ClassBooking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
@@ -89,11 +90,16 @@ public class AiService {
     }
 
     public Flux<String> chatResponse(String email, ChatRequest request) {
-        UserProfile profile = profileService.getCurrentUser(email);
-        List<ClassBooking> upcomingBookings = classBookingRepository.findByUserIdAndBookedAtAfter(profile.id(), LocalDateTime.now());
+        String systemPrompt;
         List<GymClass> availableClasses = gymClassService.findUpcomingClasses(LocalDateTime.now());
+        if (!email.equalsIgnoreCase("anonymousUser")) {
+            UserProfile profile = profileService.getCurrentUser(email);
+            List<ClassBooking> upcomingBookings = classBookingRepository.findByUserIdAndBookedAtAfter(profile.id(), LocalDateTime.now());
+            systemPrompt = aiPromptProvider.getDynamicChatSystemPrompt(profile, upcomingBookings, availableClasses);
+        } else {
+            systemPrompt = aiPromptProvider.getDynamicChatSystemPrompt(null, null, Collections.emptyList(), availableClasses);
+        }
 
-        String systemPrompt = aiPromptProvider.getDynamicChatSystemPrompt(profile, upcomingBookings, availableClasses);
         List<ChatMessageDTO> history = chatHistoryService.getRecentHistory(email, 10);
 
         chatHistoryService.saveUserMessage(email, request.message());
@@ -105,8 +111,7 @@ public class AiService {
 
         return aiStrategy.chatResponseWithHistory(
                 systemPrompt, history, request.message(), aiPromptProvider.getAgentTools()
-        ).flatMap(chunk -> {
-            OpenRouterResponse openRouterResponse = (OpenRouterResponse) chunk;
+        ).flatMap(openRouterResponse -> {
             if (openRouterResponse.choices() == null || openRouterResponse.choices().isEmpty()) {
                 return Flux.empty();
             }

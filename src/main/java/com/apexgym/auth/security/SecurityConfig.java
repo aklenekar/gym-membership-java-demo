@@ -49,6 +49,7 @@ public class SecurityConfig {
                                 "/h2-console/**",
                                 "/trainers/**",
                                 "/profile/**",// ← PUBLIC: No authentication required
+                                "/ai/chat/**",
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
