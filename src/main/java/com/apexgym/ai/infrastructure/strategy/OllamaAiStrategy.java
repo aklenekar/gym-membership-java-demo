@@ -4,6 +4,7 @@ import com.apexgym.ai.domain.AiPromptProvider;
 import com.apexgym.ai.dto.ChatMessageDTO;
 import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.dto.FitnessClass;
+import com.apexgym.ai.dto.WorkoutDayDto;
 import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.ollama.*;
 import com.apexgym.ai.service.RecommendationParser;
@@ -50,7 +51,7 @@ public class OllamaAiStrategy implements AiStrategy {
     }
 
     @Override
-    public List<String> generateWorkoutPlan(String goals, int daysPerWeek, int experienceYears, List<String> availableEquipment) {
+    public List<WorkoutDayDto> generateWorkoutPlan(String goals, int daysPerWeek, int experienceYears, List<String> availableEquipment) {
         return workoutPlanService.getWeeklyWorkoutPlanParallel(daysPerWeek, goals, experienceYears, availableEquipment);
     }
 

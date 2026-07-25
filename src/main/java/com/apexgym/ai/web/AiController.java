@@ -1,7 +1,6 @@
 package com.apexgym.ai.web;
 
-import com.apexgym.ai.dto.ChatRequest;
-import com.apexgym.ai.dto.ClassRecommendationDTO;
+import com.apexgym.ai.dto.*;
 import com.apexgym.ai.service.AiService;
 import com.apexgym.shared.CommonHelper;
 import lombok.RequiredArgsConstructor;
@@ -37,16 +36,16 @@ public class AiController {
     }
 
     @PostMapping("/workout/plan")
-    public ResponseEntity<List<String>> generateWorkoutPlan() {
+    public ResponseEntity<List<WorkoutDayDto>> generateWorkoutPlan(@RequestBody WorkoutPlanRequest workoutPlanRequest) {
         String email = commonHelper.getCurrentUserEmail();
-        List<String> plan = aiService.generateWorkoutPlan(email);
+        List<WorkoutDayDto> plan = aiService.generateWorkoutPlan(email, workoutPlanRequest);
         return ResponseEntity.ok(plan);
     }
 
     @PostMapping("/nutrition/plan")
-    public ResponseEntity<String> getNutritionPlan() {
+    public ResponseEntity<String> getNutritionPlan(@RequestBody NutritionRequest nutritionRequest) {
         String email = commonHelper.getCurrentUserEmail();
-        String plan = aiService.getNutritionPlan(email);
+        String plan = aiService.getNutritionPlan(email, nutritionRequest);
         return ResponseEntity.ok(plan);
     }
 

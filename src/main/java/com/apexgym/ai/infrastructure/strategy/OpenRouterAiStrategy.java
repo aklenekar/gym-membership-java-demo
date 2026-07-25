@@ -4,9 +4,9 @@ import com.apexgym.ai.domain.AiPromptProvider;
 import com.apexgym.ai.dto.ChatMessageDTO;
 import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.dto.FitnessClass;
+import com.apexgym.ai.dto.WorkoutDayDto;
 import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.openrouter.OpenRouterService;
-import com.apexgym.ai.service.ChatHistoryService;
 import com.apexgym.ai.service.RecommendationParser;
 import com.apexgym.booking.persistence.GymClass;
 import com.apexgym.booking.service.GymClassService;
@@ -75,20 +75,52 @@ public class OpenRouterAiStrategy implements AiStrategy {
     }
 
     @Override
-    public List<String> generateWorkoutPlan(String goals, int daysPerWeek, int experienceYears, List<String> availableEquipment) {
+    public List<WorkoutDayDto> generateWorkoutPlan(String goals, int daysPerWeek, int experienceYears, List<String> availableEquipment) {
         List<String> days = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
         var executor = Executors.newVirtualThreadPerTaskExecutor();
 
-        List<CompletableFuture<String>> futures = days.stream()
+        List<CompletableFuture<WorkoutDayDto>> futures = days.stream()
                 .limit(daysPerWeek)
                 .map(dayName -> CompletableFuture.supplyAsync(() -> {
-                    String prompt = aiPromptProvider.getWorkoutPlanPrompt(dayName, goals, experienceYears, availableEquipment);
-                    String response = openRouterService.getJsonResponse(prompt);
-                    return response.replaceAll("```json\\n?", "").replaceAll("```", "").trim();
+                    try {
+                        String prompt = aiPromptProvider.getWorkoutPlanPrompt(dayName, goals, experienceYears, availableEquipment);
+                        String response = openRouterService.getJsonResponse(prompt);
+
+                        // 1. Guard against null or empty AI responses
+                        if (response == null || response.isBlank()) {
+                            log.warn("Received empty response from OpenRouter for {}", dayName);
+                            return createFallbackDay(dayName);
+                        }
+
+                        String cleaned = response.replaceAll("```json\\n?", "").replaceAll("```", "").trim();
+
+                        // 2. Guard against empty string after cleaning markdown
+                        if (cleaned.isBlank()) {
+                            log.warn("Cleaned JSON response is empty for {}", dayName);
+                            return createFallbackDay(dayName);
+                        }
+
+                        return objectMapper.readValue(cleaned, WorkoutDayDto.class);
+
+                    } catch (Exception e) {
+                        log.error("Failed to parse OpenRouter response for {}", dayName, e);
+                        // Gracefully fallback instead of crashing all days
+                        return createFallbackDay(dayName);
+                    }
                 }, executor))
                 .toList();
 
         return futures.stream().map(CompletableFuture::join).toList();
+    }
+
+    private WorkoutDayDto createFallbackDay(String dayName) {
+        return new WorkoutDayDto(
+                dayName,
+                "Active Recovery & Rest",
+                List.of(),
+                "30 minutes",
+                "Light stretching, mobility, or walk."
+        );
     }
 
     @Override

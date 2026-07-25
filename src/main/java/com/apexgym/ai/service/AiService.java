@@ -1,10 +1,7 @@
 package com.apexgym.ai.service;
 
 import com.apexgym.ai.domain.AiPromptProvider;
-import com.apexgym.ai.dto.ChatMessageDTO;
-import com.apexgym.ai.dto.ChatRequest;
-import com.apexgym.ai.dto.ClassRecommendationDTO;
-import com.apexgym.ai.dto.FitnessClass;
+import com.apexgym.ai.dto.*;
 import com.apexgym.ai.dto.openrouter.OpenRouterMessage;
 import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.strategy.AiStrategy;
@@ -73,15 +70,14 @@ public class AiService {
         );
     }
 
-    public List<String> generateWorkoutPlan(String email) {
+    public List<WorkoutDayDto> generateWorkoutPlan(String email, WorkoutPlanRequest workoutPlanRequest) {
         UserProfile userProfile = profileService.getCurrentUser(email);
-        List<String> availableEquipment = List.of("Drill", "Saw", "Hammer", "Level");
-        return aiStrategy.generateWorkoutPlan(userProfile.goals(), 3, 5, availableEquipment);
+        return aiStrategy.generateWorkoutPlan(userProfile.goals(), workoutPlanRequest.daysPerWeek(), workoutPlanRequest.experienceYears(), workoutPlanRequest.availableEquipment());
     }
 
-    public String getNutritionPlan(String email) {
+    public String getNutritionPlan(String email, NutritionRequest nutritionRequest) {
         UserProfile userProfile = profileService.getCurrentUser(email);
-        return aiStrategy.getNutritionPlan(userProfile.goals(), 80, 32, userProfile.level(), Collections.emptyList());
+        return aiStrategy.getNutritionPlan(userProfile.goals(), nutritionRequest.weight(), nutritionRequest.age(), userProfile.level(), nutritionRequest.dietaryRestrictions());
     }
 
     public Flux<String> chatResponse(ChatRequest request) {

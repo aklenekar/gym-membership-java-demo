@@ -4,6 +4,7 @@ import com.apexgym.ai.domain.AiPromptProvider;
 import com.apexgym.ai.dto.ChatMessageDTO;
 import com.apexgym.ai.dto.ClassRecommendationDTO;
 import com.apexgym.ai.dto.FitnessClass;
+import com.apexgym.ai.dto.WorkoutDayDto;
 import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.gemini.GeminiJsonUtil;
 import com.apexgym.ai.infrastructure.gemini.GeminiService;
@@ -13,6 +14,7 @@ import com.apexgym.booking.service.GymClassService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +30,7 @@ public class GeminiAiStrategy implements AiStrategy {
     private final GeminiService geminiService;
     private final AiPromptProvider aiPromptProvider;
     private final GymClassService gymClassService;
+    private final ObjectMapper objectMapper;
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     @Override
@@ -63,14 +66,19 @@ public class GeminiAiStrategy implements AiStrategy {
     }
 
     @Override
-    public List<String> generateWorkoutPlan(String goals, int daysPerWeek, int experienceYears, List<String> availableEquipment) {
+    public List<WorkoutDayDto> generateWorkoutPlan(String goals, int daysPerWeek, int experienceYears, List<String> availableEquipment) {
         List<String> days = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
 
-        List<CompletableFuture<String>> futures = days.stream()
+        List<CompletableFuture<WorkoutDayDto>> futures = days.stream()
                 .limit(daysPerWeek)
                 .map(dayName -> CompletableFuture.supplyAsync(() -> {
                     String prompt = aiPromptProvider.getWorkoutPlanPrompt(dayName, goals, experienceYears, availableEquipment);
-                    return GeminiJsonUtil.clean(geminiService.getJsonResponse(prompt));
+                    String cleaned = GeminiJsonUtil.clean(geminiService.getJsonResponse(prompt));
+                    try {
+                        return objectMapper.readValue(cleaned, WorkoutDayDto.class);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to deserialize workout plan JSON", e);
+                    }
                 }, executor))
                 .toList();
 
