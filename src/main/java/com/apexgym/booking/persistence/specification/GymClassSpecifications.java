@@ -56,6 +56,9 @@ public class GymClassSpecifications {
                 if (finalStart != null) {
                     predicates.add(criteriaBuilder.between(root.get("classDate"), finalStart, finalEnd));
                 }
+            } else {
+                // Default to upcoming classes if no day filter is provided
+                predicates.add(criteriaBuilder.greaterThan(root.get("classDate"), currentTime));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

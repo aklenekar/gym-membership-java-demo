@@ -104,7 +104,6 @@ public class DashboardService {
                 .build();
     }
 
-    // return only user's upcoming classes (limit to 3) and include booking status
     private List<UpcomingClassDTO> getUpcomingClasses(Long userId) {
         LocalDateTime now = LocalDateTime.now();
         List<GymClass> upcomingClasses = gymClassService.findUpcomingClasses(now);
@@ -119,20 +118,23 @@ public class DashboardService {
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
 
         return upcomingClasses.stream()
-                .limit(3)
-                .filter(gymClass -> bookingClassIds.containsKey(gymClass.getId()))
                 .map(gymClass -> {
+                    boolean isBooked = bookingClassIds.containsKey(gymClass.getId());
+                    Long bookingId = isBooked ? bookingClassIds.get(gymClass.getId()).getId() : null;
+
                     return UpcomingClassDTO.builder()
-                        .id(gymClass.getId())
-                        .name(gymClass.getName())
-                        .instructor("with " + gymClass.getInstructorName())
-                        .location(gymClass.getLocation())
-                        .time(gymClass.getClassDate().format(timeFormatter))
-                        .date(getDateLabel(gymClass.getClassDate()))
-                        .isBooked(true)
-                        .bookingId(bookingClassIds.get(gymClass.getId()).getId())
-                        .build();
+                            .id(gymClass.getId())
+                            .name(gymClass.getName())
+                            .instructor("with " + gymClass.getInstructorName())
+                            .location(gymClass.getLocation())
+                            .time(gymClass.getClassDate().format(timeFormatter))
+                            .date(getDateLabel(gymClass.getClassDate()))
+                            .isBooked(isBooked)
+                            .bookingId(bookingId)
+                            .build();
                 })
+                .filter(UpcomingClassDTO::isBooked)
+                .limit(3)
                 .toList();
     }
 

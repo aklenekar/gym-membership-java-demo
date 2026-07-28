@@ -6,6 +6,7 @@ import com.apexgym.ai.dto.openrouter.OpenRouterMessage;
 import com.apexgym.ai.dto.openrouter.OpenRouterResponse;
 import com.apexgym.ai.infrastructure.strategy.AiStrategy;
 import com.apexgym.booking.dto.ClassAttendance;
+import com.apexgym.booking.persistence.BookingStatus;
 import com.apexgym.booking.persistence.ClassBookingRepository;
 import com.apexgym.booking.persistence.GymClass;
 import com.apexgym.booking.service.GymClassService;
@@ -90,7 +91,8 @@ public class AiService {
         List<GymClass> availableClasses = gymClassService.findUpcomingClasses(LocalDateTime.now());
         if (!email.equalsIgnoreCase("anonymousUser")) {
             UserProfile profile = profileService.getCurrentUser(email);
-            List<ClassBooking> upcomingBookings = classBookingRepository.findByUserIdAndBookedAtAfter(profile.id(), LocalDateTime.now());
+            List<ClassBooking> upcomingBookings = classBookingRepository
+                    .findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(profile.id(), BookingStatus.BOOKED, LocalDateTime.now());
             systemPrompt = aiPromptProvider.getDynamicChatSystemPrompt(profile, upcomingBookings, availableClasses);
         } else {
             systemPrompt = aiPromptProvider.getDynamicChatSystemPrompt(null, null, Collections.emptyList(), availableClasses);
