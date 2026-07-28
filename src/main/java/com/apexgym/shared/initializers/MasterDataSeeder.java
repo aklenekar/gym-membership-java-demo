@@ -22,6 +22,8 @@ public class MasterDataSeeder {
     private final ClassSeeder classSeeder;
     private final DashboardDemoSeeder dashboardDemoSeeder;
     private final ComprehensiveSeeder comprehensiveSeeder;
+    private final EquipmentSeeder equipmentSeeder;
+    private final MaintenanceSeeder maintenanceSeeder;
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
@@ -33,6 +35,8 @@ public class MasterDataSeeder {
         classSeeder.seed();
         dashboardDemoSeeder.seed();
         comprehensiveSeeder.seed();
+        equipmentSeeder.seed();
+        maintenanceSeeder.seed();
 
         log.info("✅ Database seeding completed successfully!");
     }

@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+mvnw
+mvnw.cmd
+apexgym.mv.db
+application-local.yml
+plan
