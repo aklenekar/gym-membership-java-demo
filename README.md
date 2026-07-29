@@ -27,7 +27,7 @@ A robust backend REST API developed with **Spring Boot** to manage gym membershi
 
 ## 🏗️ Project Architecture
 
-The project follows a standard N-tier architecture to ensure separation of concerns:
+The project follows a standard N-tier architecture to ensure the separation of concerns:
 
 
 
