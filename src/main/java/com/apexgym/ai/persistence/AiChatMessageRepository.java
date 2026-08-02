@@ -7,11 +7,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
+public interface AiChatMessageRepository extends JpaRepository<AIChatMessage, Long> {
 
     // Fetch the most recent N messages descending to apply limit, then sort chronologically in service
-    @Query("SELECT cm FROM ChatMessage cm WHERE cm.userEmail = :email ORDER BY cm.createdAt DESC")
-    List<ChatMessage> findRecentMessagesByUserEmail(@Param("email") String email, Pageable pageable);
+    @Query("SELECT cm FROM AIChatMessage cm WHERE cm.userEmail = :email ORDER BY cm.createdAt DESC")
+    List<AIChatMessage> findRecentMessagesByUserEmail(@Param("email") String email, Pageable pageable);
 
     void deleteByUserEmail(String email);
 }

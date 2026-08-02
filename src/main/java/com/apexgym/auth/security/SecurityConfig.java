@@ -50,7 +50,8 @@ public class SecurityConfig {
                                 "/trainers/**",
                                 "/profile/**",// ← PUBLIC: No authentication required
                                 "/ai/chat/**",
-                                "/error"
+                                "/error",
+                                "/ws-chat/**"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

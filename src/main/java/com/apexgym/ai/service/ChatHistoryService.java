@@ -1,8 +1,8 @@
 package com.apexgym.ai.service;
 
-import com.apexgym.ai.persistence.ChatMessage;
+import com.apexgym.ai.persistence.AIChatMessage;
 import com.apexgym.ai.dto.ChatMessageDTO;
-import com.apexgym.ai.persistence.ChatMessageRepository;
+import com.apexgym.ai.persistence.AiChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -17,14 +17,14 @@ import java.util.List;
 @Slf4j
 public class ChatHistoryService {
 
-    private final ChatMessageRepository repository;
+    private final AiChatMessageRepository repository;
 
     /**
      * Retrieves the latest N messages for a user, sorted in chronological order (oldest to newest).
      */
     @Transactional(readOnly = true)
     public List<ChatMessageDTO> getRecentHistory(String userEmail, int limit) {
-        List<ChatMessage> recent = repository.findRecentMessagesByUserEmail(userEmail, PageRequest.of(0, limit));
+        List<AIChatMessage> recent = repository.findRecentMessagesByUserEmail(userEmail, PageRequest.of(0, limit));
 
         // Reverse so the conversation flows naturally from top to bottom
         Collections.reverse(recent);
@@ -38,8 +38,8 @@ public class ChatHistoryService {
      * Saves a user query message.
      */
     @Transactional
-    public ChatMessage saveUserMessage(String userEmail, String content) {
-        ChatMessage message = ChatMessage.builder()
+    public AIChatMessage saveUserMessage(String userEmail, String content) {
+        AIChatMessage message = AIChatMessage.builder()
                 .userEmail(userEmail)
                 .role("user")
                 .content(content)
@@ -51,8 +51,8 @@ public class ChatHistoryService {
      * Saves the final assistant response after streaming completes.
      */
     @Transactional
-    public ChatMessage saveAssistantMessage(String userEmail, String content) {
-        ChatMessage message = ChatMessage.builder()
+    public AIChatMessage saveAssistantMessage(String userEmail, String content) {
+        AIChatMessage message = AIChatMessage.builder()
                 .userEmail(userEmail)
                 .role("assistant")
                 .content(content)

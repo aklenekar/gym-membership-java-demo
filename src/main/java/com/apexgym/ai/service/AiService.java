@@ -94,13 +94,12 @@ public class AiService {
             List<ClassBooking> upcomingBookings = classBookingRepository
                     .findByUserIdAndStatusAndGymClass_ClassDateAfterOrderByGymClass_ClassDate(profile.id(), BookingStatus.BOOKED, LocalDateTime.now());
             systemPrompt = aiPromptProvider.getDynamicChatSystemPrompt(profile, upcomingBookings, availableClasses);
+            chatHistoryService.saveUserMessage(email, request.message());
         } else {
             systemPrompt = aiPromptProvider.getDynamicChatSystemPrompt(null, null, Collections.emptyList(), availableClasses);
         }
 
         List<ChatMessageDTO> history = chatHistoryService.getRecentHistory(email, 10);
-
-        chatHistoryService.saveUserMessage(email, request.message());
 
         // Accumulators for streaming response
         StringBuilder textResponseAccumulator = new StringBuilder();
@@ -154,7 +153,7 @@ public class AiService {
             return Flux.empty();
         })).doOnComplete(() -> {
             // Save complete assistant message to chat history
-            if (!textResponseAccumulator.isEmpty()) {
+            if (!textResponseAccumulator.isEmpty() && !email.equalsIgnoreCase("anonymousUser")) {
                 chatHistoryService.saveAssistantMessage(email, textResponseAccumulator.toString());
             }
         });
