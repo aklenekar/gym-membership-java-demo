@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/h2-console/**",
                                 "/trainers/**",
+                                "/payroll/**",
                                 "/profile/**",// ← PUBLIC: No authentication required
                                 "/ai/chat/**",
                                 "/error",
@@ -101,7 +102,7 @@ public class SecurityConfig {
                 "http://127.0.0.1:5500",
                 "https://gym-mermbership-react-demo.vercel.app"
         ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

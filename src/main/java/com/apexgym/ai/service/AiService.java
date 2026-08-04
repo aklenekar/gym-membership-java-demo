@@ -11,16 +11,20 @@ import com.apexgym.booking.persistence.ClassBookingRepository;
 import com.apexgym.booking.persistence.GymClass;
 import com.apexgym.booking.service.GymClassService;
 import com.apexgym.profile.dto.UserProfile;
+import com.apexgym.profile.persistence.MembershipPlan;
 import com.apexgym.profile.service.ProfileService;
 import com.apexgym.tracking.persistence.ClassBooking;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,8 +39,23 @@ public class AiService {
     private final AgentToolExecutor toolExecutor;
     private final AiPromptProvider aiPromptProvider;
 
+    private static final Set<MembershipPlan> AI_GATED_PLANS = EnumSet.of(MembershipPlan.PRO, MembershipPlan.ELITE);
+
+    private void requireAiAccess(UserProfile profile) {
+        MembershipPlan plan;
+        try {
+            plan = MembershipPlan.valueOf(profile.membershipPlan());
+        } catch (Exception e) {
+            plan = null;
+        }
+        if (plan == null || !AI_GATED_PLANS.contains(plan)) {
+            throw new AccessDeniedException("AI Coach features require a PRO or ELITE membership");
+        }
+    }
+
     public List<FitnessClass> getRecommendations(String email) throws Exception {
         UserProfile userProfile = profileService.getCurrentUser(email);
+        requireAiAccess(userProfile);
         List<ClassAttendance> history = gymClassService.getAttendanceHistory(email);
 
         return aiStrategy.getRecommendations(
@@ -49,6 +68,7 @@ public class AiService {
 
     public List<ClassRecommendationDTO> getRecommendedClasses(String email) {
         UserProfile userProfile = profileService.getCurrentUser(email);
+        requireAiAccess(userProfile);
         List<ClassAttendance> history = gymClassService.getAttendanceHistory(email);
 
         return aiStrategy.getRecommendedClasses(
@@ -61,6 +81,7 @@ public class AiService {
 
     public Flux<ClassRecommendationDTO> getRecommendedClassesStreamResponse(String email) {
         UserProfile userProfile = profileService.getCurrentUser(email);
+        requireAiAccess(userProfile);
         List<ClassAttendance> history = gymClassService.getAttendanceHistory(email);
 
         return aiStrategy.getRecommendedClassesStream(
@@ -73,11 +94,13 @@ public class AiService {
 
     public List<WorkoutDayDto> generateWorkoutPlan(String email, WorkoutPlanRequest workoutPlanRequest) {
         UserProfile userProfile = profileService.getCurrentUser(email);
+        requireAiAccess(userProfile);
         return aiStrategy.generateWorkoutPlan(userProfile.goals(), workoutPlanRequest.daysPerWeek(), workoutPlanRequest.experienceYears(), workoutPlanRequest.availableEquipment());
     }
 
     public String getNutritionPlan(String email, NutritionRequest nutritionRequest) {
         UserProfile userProfile = profileService.getCurrentUser(email);
+        requireAiAccess(userProfile);
         return aiStrategy.getNutritionPlan(userProfile.goals(), nutritionRequest.weight(), nutritionRequest.age(), userProfile.level(), nutritionRequest.dietaryRestrictions());
     }
 

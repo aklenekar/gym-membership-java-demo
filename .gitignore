@@ -36,3 +36,8 @@ mvnw.cmd
 apexgym.mv.db
 application-local.yml
 plan
+
+# H2 file-based database folder
+/data/
+*.mv.db
+*.trace.db
