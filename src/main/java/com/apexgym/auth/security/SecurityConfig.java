@@ -48,11 +48,11 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/h2-console/**",
                                 "/trainers/**",
-                                "/payroll/**",
                                 "/profile/**",// ← PUBLIC: No authentication required
                                 "/ai/chat/**",
                                 "/error",
-                                "/ws-chat/**"
+                                "/ws-chat/**",
+                                "/admin/pricing/**"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

@@ -1,5 +1,8 @@
 package com.apexgym.shared.initializers.seeders;
 
+import com.apexgym.admin.persistence.Pricing;
+import com.apexgym.admin.persistence.PricingFeatures;
+import com.apexgym.admin.persistence.PricingRepository;
 import com.apexgym.auth.persistence.Role;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
@@ -12,6 +15,7 @@ import com.apexgym.tracking.persistence.ClassBooking;
 import com.apexgym.tracking.persistence.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +37,7 @@ public class ComprehensiveSeeder {
     private final PersonalRecordRepository personalRecordRepository;
     private final AchievementRepository achievementRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PricingRepository pricingRepository;
 
     private final Random random = new Random();
 
@@ -51,6 +56,7 @@ public class ComprehensiveSeeder {
         createGoals(users);
         createPersonalRecords(users);
         createAchievements(users);
+        createPricing();
 
         log.info("Comprehensive data initialization completed successfully!");
     }
@@ -213,5 +219,55 @@ public class ComprehensiveSeeder {
 
             achievementRepository.save(achievement);
         }
+    }
+
+    private void createPricing() {
+        Pricing starter = Pricing.builder()
+                .name("STARTER")
+                .price(29)
+                .annualPrice(348)
+                .mostFeatured(false)
+                .features(List.of(
+                        PricingFeatures.builder().mark(true).name("Full gym access").build(),
+                        PricingFeatures.builder().mark(true).name("Locker room facilities").build(),
+                        PricingFeatures.builder().mark(true).name("Free fitness assessment").build(),
+                        PricingFeatures.builder().mark(false).name("Group classes").build(),
+                        PricingFeatures.builder().mark(false).name("Personal training").build(),
+                        PricingFeatures.builder().mark(false).name("Recovery zone access").build()
+                ))
+                .build();
+        pricingRepository.save(starter);
+
+        Pricing pro = Pricing.builder()
+                .name("PRO")
+                .price(59)
+                .annualPrice(708)
+                .mostFeatured(true)
+                .features(List.of(
+                        PricingFeatures.builder().mark(true).name("24/7 gym access").build(),
+                        PricingFeatures.builder().mark(true).name("Unlimited group classes").build(),
+                        PricingFeatures.builder().mark(true).name("Recovery zone access").build(),
+                        PricingFeatures.builder().mark(true).name("Nutrition consultation").build(),
+                        PricingFeatures.builder().mark(true).name("Guest passes (2/month)").build(),
+                        PricingFeatures.builder().mark(false).name("Personal training").build()
+                ))
+                .build();
+        pricingRepository.save(pro);
+
+        Pricing elite = Pricing.builder()
+                .name("ELITE")
+                .price(99)
+                .annualPrice(1188)
+                .mostFeatured(false)
+                .features(List.of(
+                        PricingFeatures.builder().mark(true).name("Everything in Pro").build(),
+                        PricingFeatures.builder().mark(true).name("4 personal training sessions").build(),
+                        PricingFeatures.builder().mark(true).name("Priority class booking").build(),
+                        PricingFeatures.builder().mark(true).name("Unlimited guest passes").build(),
+                        PricingFeatures.builder().mark(true).name("Exclusive member events").build(),
+                        PricingFeatures.builder().mark(true).name("Free merchandise").build()
+                ))
+                .build();
+        pricingRepository.save(elite);
     }
 }

@@ -8,10 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final AdminService adminService;
@@ -22,6 +23,7 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/members")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AdminMembersResponseDTO> getMembers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String plan,
@@ -38,6 +40,7 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/trainers")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TrainersResponseDTO> getTrainers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String specialty,
@@ -53,6 +56,7 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/classes")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AdminClassesResponseDTO> getClasses(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String category,
@@ -69,6 +73,7 @@ public class AdminController {
     // ============================================================
 
     @GetMapping("/reports")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AdminReportsResponseDTO> getReports(
             @RequestParam(defaultValue = "MONTH") String period
     ) {
@@ -77,8 +82,15 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AdminDashboardResponseDTO> getDashboard() {
         AdminDashboardResponseDTO response = adminService.getDashboard();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/pricing")
+    public ResponseEntity<PricingResponseDTO> getPricing() {
+        PricingResponseDTO response = adminService.getPricing();
         return ResponseEntity.ok(response);
     }
 }

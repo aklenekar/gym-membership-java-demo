@@ -1,5 +1,6 @@
 package com.apexgym.admin.service;
 
+import com.apexgym.admin.persistence.PricingRepository;
 import com.apexgym.auth.persistence.Role;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
@@ -44,6 +45,7 @@ public class AdminService {
     private final ClassBookingRepository classBookingRepository;
     private final TrainerRepository trainerRepository;
     private final AdminMapper adminMapper;
+    private final PricingRepository pricingRepository;
 
     // ============================================================
     // MEMBERS
@@ -435,5 +437,13 @@ public class AdminService {
         double change = ((double) (current - previous) / previous) * 100;
         String sign = change >= 0 ? "+" : "";
         return String.format("%s%.0f%% %s", sign, change, period);
+    }
+
+    public PricingResponseDTO getPricing() {
+        List<PricingDTO> pricing = pricingRepository.findAll()
+                .stream()
+                .map(adminMapper::toPricingDTO)
+                .collect(Collectors.toList());
+        return PricingResponseDTO.builder().pricing(pricing).build();
     }
 }
