@@ -1,5 +1,6 @@
 package com.apexgym.profile.web;
 
+import com.apexgym.admin.dto.PricingResponseDTO;
 import com.apexgym.profile.dto.MembershipInfoDTO;
 import com.apexgym.profile.dto.UpgradeMembershipRequest;
 import com.apexgym.profile.service.MembershipService;
@@ -21,5 +22,11 @@ public class MembershipController {
     public ResponseEntity<MembershipInfoDTO> upgradePlan(@Valid @RequestBody UpgradeMembershipRequest request) {
         String email = commonHelper.getCurrentUserEmail();
         return ResponseEntity.ok(membershipService.upgradePlan(email, request.plan()));
+    }
+
+    @GetMapping("/pricing")
+    public ResponseEntity<PricingResponseDTO> getPricing() {
+        PricingResponseDTO response = membershipService.getPricing();
+        return ResponseEntity.ok(response);
     }
 }

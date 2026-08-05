@@ -1,8 +1,8 @@
 package com.apexgym.shared.initializers.seeders;
 
-import com.apexgym.admin.persistence.Pricing;
-import com.apexgym.admin.persistence.PricingFeatures;
-import com.apexgym.admin.persistence.PricingRepository;
+import com.apexgym.profile.persistence.Pricing;
+import com.apexgym.profile.persistence.PricingFeatures;
+import com.apexgym.profile.persistence.PricingRepository;
 import com.apexgym.auth.persistence.Role;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
@@ -15,7 +15,6 @@ import com.apexgym.tracking.persistence.ClassBooking;
 import com.apexgym.tracking.persistence.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 

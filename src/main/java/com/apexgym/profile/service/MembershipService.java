@@ -1,17 +1,19 @@
 package com.apexgym.profile.service;
 
+import com.apexgym.admin.dto.PricingDTO;
+import com.apexgym.admin.dto.PricingResponseDTO;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.profile.dto.MembershipInfoDTO;
-import com.apexgym.profile.persistence.Membership;
-import com.apexgym.profile.persistence.MembershipPlan;
-import com.apexgym.profile.persistence.MembershipRepository;
-import com.apexgym.profile.persistence.MembershipStatus;
+import com.apexgym.profile.persistence.*;
+import com.apexgym.shared.mappers.AdminMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,8 @@ public class MembershipService {
 
     private final UserRepository userRepository;
     private final MembershipRepository membershipRepository;
+    private final PricingRepository pricingRepository;
+    private final AdminMapper adminMapper;
 
     @Transactional
     public MembershipInfoDTO upgradePlan(String email, String planStr) {
@@ -62,5 +66,13 @@ public class MembershipService {
                 .nextBillingDate(membership.getNextBillingDate())
                 .price(membership.getPrice())
                 .build();
+    }
+
+    public PricingResponseDTO getPricing() {
+        List<PricingDTO> pricing = pricingRepository.findAll()
+                .stream()
+                .map(adminMapper::toPricingDTO)
+                .collect(Collectors.toList());
+        return PricingResponseDTO.builder().pricing(pricing).build();
     }
 }

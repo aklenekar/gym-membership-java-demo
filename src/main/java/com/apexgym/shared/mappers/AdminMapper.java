@@ -1,7 +1,7 @@
 package com.apexgym.shared.mappers;
 
 import com.apexgym.admin.dto.*;
-import com.apexgym.admin.persistence.Pricing;
+import com.apexgym.profile.persistence.Pricing;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.booking.persistence.GymClass;
 import com.apexgym.profile.persistence.Membership;

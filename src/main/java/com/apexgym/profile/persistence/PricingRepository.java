@@ -1,4 +1,4 @@
-package com.apexgym.admin.persistence;
+package com.apexgym.profile.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

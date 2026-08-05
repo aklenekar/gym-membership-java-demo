@@ -1,4 +1,4 @@
-package com.apexgym.admin.persistence;
+package com.apexgym.profile.persistence;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

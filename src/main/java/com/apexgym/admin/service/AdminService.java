@@ -1,6 +1,6 @@
 package com.apexgym.admin.service;
 
-import com.apexgym.admin.persistence.PricingRepository;
+import com.apexgym.admin.dto.*;
 import com.apexgym.auth.persistence.Role;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
@@ -9,14 +9,13 @@ import com.apexgym.booking.persistence.ClassBookingRepository;
 import com.apexgym.booking.persistence.GymClass;
 import com.apexgym.booking.persistence.GymClassCategory;
 import com.apexgym.booking.persistence.GymClassRepository;
-import com.apexgym.staff.dto.TrainerDTO;
-import com.apexgym.staff.dto.TrainersResponseDTO;
-import com.apexgym.admin.dto.*;
 import com.apexgym.profile.persistence.Membership;
 import com.apexgym.profile.persistence.MembershipPlan;
 import com.apexgym.profile.persistence.MembershipRepository;
 import com.apexgym.profile.persistence.MembershipStatus;
 import com.apexgym.shared.mappers.AdminMapper;
+import com.apexgym.staff.dto.TrainerDTO;
+import com.apexgym.staff.dto.TrainersResponseDTO;
 import com.apexgym.staff.persistence.Trainer;
 import com.apexgym.staff.persistence.TrainerRepository;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,6 @@ public class AdminService {
     private final ClassBookingRepository classBookingRepository;
     private final TrainerRepository trainerRepository;
     private final AdminMapper adminMapper;
-    private final PricingRepository pricingRepository;
 
     // ============================================================
     // MEMBERS
@@ -437,13 +435,5 @@ public class AdminService {
         double change = ((double) (current - previous) / previous) * 100;
         String sign = change >= 0 ? "+" : "";
         return String.format("%s%.0f%% %s", sign, change, period);
-    }
-
-    public PricingResponseDTO getPricing() {
-        List<PricingDTO> pricing = pricingRepository.findAll()
-                .stream()
-                .map(adminMapper::toPricingDTO)
-                .collect(Collectors.toList());
-        return PricingResponseDTO.builder().pricing(pricing).build();
     }
 }

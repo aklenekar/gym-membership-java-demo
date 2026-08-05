@@ -1,6 +1,5 @@
-package com.apexgym.admin.persistence;
+package com.apexgym.profile.persistence;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
