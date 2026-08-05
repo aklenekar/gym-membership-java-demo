@@ -41,3 +41,5 @@ plan
 /data/
 *.mv.db
 *.trace.db
+
+.agents
