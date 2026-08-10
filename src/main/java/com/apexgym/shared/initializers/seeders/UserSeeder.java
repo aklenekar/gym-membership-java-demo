@@ -28,7 +28,6 @@ public class UserSeeder {
         String trainerPassword = passwordEncoder.encode("trainer123");
 
         List<User> users = List.of(
-                buildUser("user@apexgym.com", "Ashwin", "User", Role.USER, userPassword),
                 buildUser("admin@apexgym.com", "Admin", "User", Role.ADMIN, adminPassword),
                 buildUser("trainer@apexgym.com", "Trainer", "User", Role.TRAINER, trainerPassword),
                 buildUser("sarah.mitchell@apexgym.com", "Sarah", "Mitchell", Role.TRAINER, trainerPassword),

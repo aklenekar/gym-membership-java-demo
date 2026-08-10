@@ -62,6 +62,7 @@ public class ComprehensiveSeeder {
 
     private List<User> createUsers() {
         String[][] userData = {
+                {"Ashwin", "Lenekar", "user@apexgym.com"},
                 {"Emma", "Wilson", "emma.wilson@email.com"},
                 {"Michael", "Brown", "michael.brown@email.com"},
                 {"Sophia", "Garcia", "sophia.garcia@email.com"},
