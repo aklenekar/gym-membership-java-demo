@@ -52,7 +52,9 @@ public class SecurityConfig {
                                 "/ai/chat/**",
                                 "/error",
                                 "/ws-chat/**",
-                                "/membership/pricing/**"
+                                "/membership/pricing/**",
+                                "/payments/create-intent",
+                                "/payments/webhook"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

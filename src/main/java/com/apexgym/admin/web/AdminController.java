@@ -21,8 +21,7 @@ public class AdminController {
     // GET /api/admin/members?search=john&plan=PRO&status=ACTIVE&page=0
     // ============================================================
 
-    @GetMapping("/members" +
-            "")
+    @GetMapping("/members")
     public ResponseEntity<AdminMembersResponseDTO> getMembers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String plan,
