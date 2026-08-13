@@ -5,9 +5,11 @@ import com.apexgym.admin.dto.PricingResponseDTO;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.profile.dto.MembershipInfoDTO;
+import com.apexgym.profile.event.PlanChangeEvent;
 import com.apexgym.profile.persistence.*;
 import com.apexgym.shared.mappers.AdminMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final PricingRepository pricingRepository;
     private final AdminMapper adminMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public MembershipInfoDTO upgradePlan(String email, String planStr) {
@@ -58,6 +61,8 @@ public class MembershipService {
         membership.setNextBillingDate(LocalDate.now().plusMonths(1));
 
         membershipRepository.save(membership);
+
+        eventPublisher.publishEvent(new PlanChangeEvent(this, user, newPlan.name()));
 
         return MembershipInfoDTO.builder()
                 .plan(membership.getPlan().name())

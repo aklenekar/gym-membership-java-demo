@@ -3,6 +3,7 @@ package com.apexgym.booking.service;
 import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.booking.event.ClassBookedEvent;
+import com.apexgym.booking.event.ClassCancelledEvent;
 import com.apexgym.booking.persistence.*;
 import com.apexgym.notification.service.NotificationService;
 import com.apexgym.tracking.persistence.ClassBooking;
@@ -84,5 +85,7 @@ public class ClassBookingService {
         GymClass gymClass = booking.getGymClass();
         gymClass.setCurrentBookings(Math.max(0, gymClass.getCurrentBookings() - 1));
         gymClassRepository.save(gymClass);
+
+        eventPublisher.publishEvent(new ClassCancelledEvent(this, user, gymClass.getName()));
     }
 }

@@ -1,5 +1,6 @@
 package com.apexgym.tracking.event;
 
+import com.apexgym.booking.event.ClassCancelledEvent;
 import com.apexgym.profile.persistence.Activity;
 import com.apexgym.profile.persistence.ActivityType;
 import com.apexgym.booking.event.ClassBookedEvent;
@@ -16,6 +17,17 @@ public class ActivityEventListener {
 
     @EventListener
     public void handleClassBookedEvent(ClassBookedEvent event) {
+        Activity activity = Activity.builder()
+                .user(event.getUser())
+                .type(ActivityType.CLASS_ATTENDED)
+                .title("Booked " + event.getClassName())
+                .icon("📅")
+                .build();
+        activityRepository.save(activity);
+    }
+
+    @EventListener
+    public void handleClassCancelledEvent(ClassCancelledEvent event) {
         Activity activity = Activity.builder()
                 .user(event.getUser())
                 .type(ActivityType.CLASS_ATTENDED)
