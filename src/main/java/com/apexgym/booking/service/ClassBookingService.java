@@ -4,6 +4,7 @@ import com.apexgym.auth.persistence.User;
 import com.apexgym.auth.persistence.UserRepository;
 import com.apexgym.booking.event.ClassBookedEvent;
 import com.apexgym.booking.persistence.*;
+import com.apexgym.notification.service.NotificationService;
 import com.apexgym.tracking.persistence.ClassBooking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
