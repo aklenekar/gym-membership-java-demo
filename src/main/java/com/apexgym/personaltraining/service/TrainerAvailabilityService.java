@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,5 +93,38 @@ public class TrainerAvailabilityService {
                 .startTime(a.getStartTime())
                 .endTime(a.getEndTime())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<NextAvailabilityDTO> getNextAvailabilityForAllTrainers() {
+        List<Trainer> trainers = trainerRepository.findByIsActiveTrueOrderByIsHeadCoachDescYearsExperienceDesc();
+        LocalDate today = LocalDate.now();
+
+        return trainers.stream()
+                .map(trainer -> {
+                    LocalDateTime nextSlot = findNextSlot(trainer.getId(), today, 14);
+                    return NextAvailabilityDTO.builder()
+                            .trainerId(trainer.getId())
+                            .trainerName(trainer.getFullName())
+                            .initials(trainer.getInitials())
+                            .specialty(trainer.getSpecialty())
+                            .imageUrl(trainer.getImageUrl())
+                            .nextSlot(nextSlot)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    private LocalDateTime findNextSlot(Long trainerId, LocalDate fromDate, int daysAhead) {
+        for (int i = 0; i < daysAhead; i++) {
+            LocalDate date = fromDate.plusDays(i);
+            List<OpenSlotDTO> slots = getOpenSlots(trainerId, date);
+            LocalDateTime cutoff = i == 0 ? LocalDateTime.now() : date.atStartOfDay();
+            Optional<OpenSlotDTO> next = slots.stream()
+                    .filter(s -> s.start().isAfter(cutoff))
+                    .findFirst();
+            if (next.isPresent()) return next.get().start();
+        }
+        return null;
     }
 }
