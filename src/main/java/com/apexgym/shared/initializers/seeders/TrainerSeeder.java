@@ -36,6 +36,7 @@ public class TrainerSeeder {
                         .isHeadCoach(true)
                         .phone("(555) 123-4501")
                         .isActive(true)
+                        .imageUrl("SM.jpg")
                         .build(),
 
                 Trainer.builder()
@@ -49,6 +50,7 @@ public class TrainerSeeder {
                         .rating(5.0)
                         .isHeadCoach(true)
                         .isActive(true)
+                        .imageUrl("MR.jpg")
                         .build(),
 
                 Trainer.builder()
@@ -60,6 +62,7 @@ public class TrainerSeeder {
                         .bio("Specializes in vinyasa flow and restorative yoga with emphasis on injury prevention.")
                         .isHeadCoach(false)
                         .isActive(true)
+                        .imageUrl("EC.jpg")
                         .build(),
 
                 Trainer.builder()
@@ -71,6 +74,7 @@ public class TrainerSeeder {
                         .bio("Competitive powerlifter focused on maximal strength development and technique.")
                         .isHeadCoach(false)
                         .isActive(true)
+                        .imageUrl("TJ.jpg")
                         .build(),
 
                 Trainer.builder()
@@ -82,6 +86,7 @@ public class TrainerSeeder {
                         .bio("Registered dietitian offering personalized meal planning and nutritional guidance.")
                         .isHeadCoach(false)
                         .isActive(true)
+                        .imageUrl("LP.jpg")
                         .build(),
 
                 Trainer.builder()
@@ -93,6 +98,7 @@ public class TrainerSeeder {
                         .bio("Former amateur boxer specializing in combat sports conditioning and technique.")
                         .isHeadCoach(false)
                         .isActive(true)
+                        .imageUrl("DK.jpg")
                         .build()
         );
 
